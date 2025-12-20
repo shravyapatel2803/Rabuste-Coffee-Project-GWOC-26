@@ -1,53 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Star, ShoppingBag } from 'lucide-react';
-
-// Mock Data based on your JSON structure
-const SAMPLE_PRODUCTS = [
-  {
-    id: "rbst-001",
-    name: "Rabuste Dark Roast",
-    slug: "rabuste-dark-roast",
-    category: "Coffee Beans",
-    roastLevel: "Dark",
-    weight: "250g",
-    price: { mrp: 499, sellingPrice: 399, currency: "INR" },
-    images: [{ imageName: "dark-roast-front.jpg" }], // Simplified for demo
-    shortDescription: "Bold and intense coffee with smoky notes, perfect for strong coffee lovers.",
-    tastingNotes: ["Smoky", "Dark Chocolate", "Woody"],
-    ratings: { average: 4.6, count: 120 },
-    stockStatus: "In Stock"
-  },
-  // Adding dummy data to demonstrate the layout
-  {
-    id: "rbst-002",
-    name: "Rabuste Gold Blend",
-    slug: "rabuste-gold-blend",
-    category: "Coffee Beans",
-    roastLevel: "Medium",
-    weight: "250g",
-    price: { mrp: 549, sellingPrice: 449, currency: "INR" },
-    images: [{ imageName: "gold-blend-front.jpg" }],
-    shortDescription: "Smooth, balanced profile with hints of caramel and roasted nuts.",
-    tastingNotes: ["Caramel", "Nutty", "Balanced"],
-    ratings: { average: 4.8, count: 85 },
-    stockStatus: "In Stock"
-  },
-  {
-    id: "rbst-003",
-    name: "Rabuste Espresso",
-    slug: "rabuste-espresso",
-    category: "Ground Coffee",
-    roastLevel: "Medium-Dark",
-    weight: "250g",
-    price: { mrp: 499, sellingPrice: 380, currency: "INR" },
-    images: [{ imageName: "espresso-front.jpg" }],
-    shortDescription: "Fine grind optimized for espresso machines. Crema rich and potent.",
-    tastingNotes: ["Berry", "Cocoa", "Intense"],
-    ratings: { average: 4.7, count: 200 },
-    stockStatus: "Out of Stock"
-  }
-];
+import { ShoppingBag, ChevronRight, Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from "framer-motion";
+import { useCart } from "../context/CartContext";
+import { apiClient } from "../api/client"; // Import our "backend" handler
 
 const Shop = ({ isPreview = false }) => {
   const [products, setProducts] = useState([]);
@@ -55,9 +11,18 @@ const Shop = ({ isPreview = false }) => {
   const { cart, addToCart, totalPrice } = useCart();
 
   useEffect(() => {
-    // Simulating API fetch
-    // const res = await API.get("/products");
-    setProducts(SAMPLE_PRODUCTS);
+    // Fetch data using the client
+    const loadData = async () => {
+      try {
+        const data = await apiClient.getProducts();
+        setProducts(data);
+      } catch (error) {
+        console.error("Failed to fetch products", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
   }, []);
 
   if (loading) {
@@ -75,61 +40,22 @@ const Shop = ({ isPreview = false }) => {
           </h1>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
-          {displayedProducts.map((product) => (
-            <div 
-              key={product.id} 
-              className="group bg-white/5 border border-white/10 rounded-sm overflow-hidden hover:border-rabuste-orange/50 transition-all duration-300"
-            >
-              {/* Image Area */}
-              <div className="relative h-64 overflow-hidden bg-black/20">
-                {/* Badge */}
-                {product.stockStatus === "Out of Stock" && (
-                  <span className="absolute top-4 right-4 bg-red-900/80 text-white text-xs font-bold px-3 py-1 uppercase tracking-wider z-10">
-                    Sold Out
-                  </span>
-                )}
-                <img
-                  // Placeholder logic since we don't have the real images yet
-                  src={`https://placehold.co/600x400/1a1a1a/FFF?text=${product.name.replace(/ /g, '+')}`} 
-                  alt={product.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
+        <div className="grid md:grid-cols-3 gap-8 pb-32">
+          {products.map((product) => (
+            <div key={product.id} className="bg-white/5 border border-white/10 rounded-sm overflow-hidden hover:border-rabuste-orange/50 transition-all group">
+              <div className="relative h-64 overflow-hidden">
+                <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
               </div>
-
-              {/* Content */}
               <div className="p-6">
-                <div className="flex justify-between items-start mb-2">
-                  <h2 className="text-xl font-serif font-bold  group-hover:text-rabuste-gold transition-colors">
-                    {product.name}
-                  </h2>
-                  <div className="flex items-center gap-1 text-rabuste-gold">
-                    <Star size={14} fill="currentColor" />
-                    <span className="text-sm font-bold">{product.ratings.average}</span>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {product.tastingNotes.map((note, idx) => (
-                    <span key={idx} className="text-[10px] uppercase tracking-wider px-2 py-1 bg-white/10 text-gray-300 rounded-sm">
-                      {note}
-                    </span>
-                  ))}
-                </div>
-
-                <p className="text-gray-400 text-sm mb-6 line-clamp-2">
-                  {product.shortDescription}
-                </p>
-
+                <h2 className="text-xl font-serif font-bold mb-2 text-white">{product.name}</h2>
+                <p className="text-rabuste-muted text-xs mb-4">{product.description}</p>
                 <div className="flex justify-between items-center border-t border-white/10 pt-4">
-                  <div className="flex flex-col">
-                    <span className="text-xs text-gray-500 line-through">₹{product.price.mrp}</span>
-                    <span className="text-lg font-bold ">₹{product.price.sellingPrice}</span>
-                  </div>
-                  
-                  <button className="flex items-center gap-2 px-4 py-2 bg-rabuste-text text-rabuste-bg font-bold text-xs uppercase tracking-wider hover:bg-rabuste-orange hover:text-white transition-colors">
-                    <ShoppingBag size={16} />
-                    Add
+                  <span className="text-lg font-bold text-rabuste-gold">₹{product.price.sellingPrice}</span>
+                  <button 
+                    onClick={() => addToCart(product)}
+                    className="flex items-center gap-2 px-4 py-2 bg-rabuste-orange text-white font-bold text-xs uppercase tracking-wider hover:bg-rabuste-gold transition-colors"
+                  >
+                    <ShoppingBag size={16} /> Add
                   </button>
                 </div>
               </div>
@@ -138,14 +64,23 @@ const Shop = ({ isPreview = false }) => {
         </div>
       </div>
 
-        {/* See More Button */}
-        {isPreview && (
-          <div className="flex justify-center mt-16">
-            <Link 
-              to="/shop" 
-              className="px-8 py-3 border border-rabuste-gold text-rabuste-gold font-bold tracking-widest uppercase hover:bg-rabuste-gold hover:text-black transition-all"
-            >
-              View All Roasts
+      {/* Floating Cart Bar */}
+      <AnimatePresence>
+        {cart.length > 0 && (
+          <motion.div 
+            initial={{ y: 100 }} 
+            animate={{ y: 0 }} 
+            exit={{ y: 100 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md z-50"
+          >
+            <Link to="/checkout" className="flex items-center justify-between bg-rabuste-orange p-4 rounded-lg shadow-2xl shadow-orange-500/40 text-white hover:bg-orange-700 transition-colors">
+              <div className="flex flex-col">
+                <span className="text-xs font-bold uppercase tracking-tighter">{cart.length} ITEM{cart.length > 1 ? 'S' : ''}</span>
+                <span className="text-lg font-black font-serif">₹{totalPrice}</span>
+              </div>
+              <div className="flex items-center gap-1 font-bold uppercase text-sm">
+                View Cart <ChevronRight size={18} />
+              </div>
             </Link>
           </motion.div>
         )}
