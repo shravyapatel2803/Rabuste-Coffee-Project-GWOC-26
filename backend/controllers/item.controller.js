@@ -25,6 +25,20 @@ export const getShopItems = async (req, res) => {
   }
 };
 
+// GET /api/items/menu/categories
+export const getMenuCategories = async (req, res) => {
+  try {
+    const categories = await Item.distinct("category", {
+      showIn: "menu",
+      "availability.isAvailable": true,
+    });
+    res.status(200).json(categories);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch categories" });
+  }
+};
+
+
 //admin side api
 // POST /api/admin/items
 export const addItem = async (req, res) => {
