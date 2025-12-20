@@ -8,7 +8,7 @@ const Menu = () => {
   useEffect(() => {
     const fetchMenu = async () => {
       try {
-        const res = await API.get("/menu");
+        const res = await API.get("/items/menu");
         setMenuItems(res.data);
       } catch (error) {
         console.error("Menu fetch error:", error);
@@ -35,8 +35,8 @@ const Menu = () => {
             className="border rounded-xl p-4 shadow hover:shadow-lg transition"
           >
             <img
-              src={item.image}
-              alt={item.name}
+              src={item.image?.url}
+              alt={item.image?.alt || item.name}
               className="w-full h-48 object-cover rounded-lg"
             />
 
