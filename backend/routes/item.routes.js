@@ -1,10 +1,12 @@
 import express from "express";
-import {getMenuItems,getShopItems,addItem,getAllItems,getItemById,updateItem,deleteItem,} from "../controllers/item.controller.js";
+import {getMenuItems,getShopItems,getMenuCategories,addItem,getAllItems,getItemById,updateItem,deleteItem,} from "../controllers/item.controller.js";
 
 const router = express.Router();
 //USER SIDE 
 router.get("/menu", getMenuItems);
 router.get("/shop", getShopItems);
+router.get("/menu/categories", getMenuCategories);
+
 
 //ADMIN SIDE
 router.post("/admin/items", addItem);
