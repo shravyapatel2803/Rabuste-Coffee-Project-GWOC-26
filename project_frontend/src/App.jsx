@@ -1,12 +1,14 @@
 import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { CartProvider } from './context/CartContext' // Ensure you have this file from previous steps
-import ScrollToTop from './componets/ScrollToTop' // Import the new scroll fixer
+import { CartProvider } from './context/CartContext' 
+import ScrollToTop from './componets/ScrollToTop' 
 
 // Pages
 import Home from './pages/Home'
-import FullGallery from './pages/FullGallery'
 import FullMenu from './pages/FullMenu'
+import ItemDetail from './pages/ItemDetail' // <--- IMPORT THIS
+import ArtDetail from './pages/ArtDetail'
+import FullGallery from './pages/FullGallery'
 import FullShop from './pages/FullShop'
 import FullFAQ from './pages/FullFAQ'
 import FullFranchise from './pages/FullFranchise'
@@ -23,13 +25,17 @@ function App() {
   }, [])
 
   return (
-    <CartProvider> {/* FIX: This wraps the whole app */}
+    <CartProvider> 
       <BrowserRouter>
-        <ScrollToTop /> {/* FIX: This resets scroll on page change */}
+        <ScrollToTop /> 
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/gallery" element={<FullGallery />} />
+          <Route path="/gallery/:id" element={<ArtDetail />} />
+          
           <Route path="/menu" element={<FullMenu />} />
+          <Route path="/menu/:id" element={<ItemDetail />} /> {/* <--- ADD THIS ROUTE */}
+
           <Route path="/shop" element={<FullShop />} />
           <Route path="/faqs" element={<FullFAQ />} />
           <Route path="/franchise" element={<FullFranchise />} />

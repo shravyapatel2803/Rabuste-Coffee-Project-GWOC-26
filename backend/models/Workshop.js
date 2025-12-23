@@ -4,7 +4,8 @@ const workshopSchema = new mongoose.Schema({
   title: String,
   description: String,
   date: String,
-  isPaid: Boolean,
+  price: { type: Number, default: 0 }, // Added price
+  active: { type: Boolean, default: true }, // Added active status
 });
 
 export default mongoose.model("Workshop", workshopSchema);

@@ -6,6 +6,8 @@ const franchiseSchema = new mongoose.Schema({
   phone: String,
   city: String,
   message: String,
+  status: { type: String, default: "Pending" }, // Added status
+  date: { type: Date, default: Date.now } // Added date
 });
 
 export default mongoose.model("Franchise", franchiseSchema);

@@ -1,68 +1,48 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=JetBrains+Mono:wght@400&display=swap');
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
+@layer base {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    /* Light Mode Theme */
+    --color-bg: 255 255 255;       
+    --color-surface: 243 244 246;  
+    --color-text: 55 55 55;        
+    --color-muted: 107 114 128;    
+    --color-gold: 180 142 30;      
+    --color-orange: 194 94 0;      
   }
-  a:hover {
-    color: #747bff;
+
+  /* Dark Mode Theme */
+  .dark {
+    --color-bg: 5 5 5;             
+    --color-surface: 18 18 18;     
+    --color-text: 229 229 229;     
+    --color-muted: 163 163 163;    
+    --color-gold: 212 175 55;      
+    --color-orange: 194 94 0;      
   }
-  button {
-    background-color: #f9f9f9;
+
+  html {
+    @apply bg-rabuste-bg text-rabuste-text antialiased;
+  }
+}
+
+@layer components {
+  /* Form Inputs */
+  .input-field {
+    @apply bg-rabuste-bg border border-rabuste-text/10 p-3 rounded text-rabuste-text focus:border-rabuste-orange focus:outline-none transition-colors w-full placeholder:text-rabuste-text/30;
+  }
+  
+  /* Primary Buttons */
+  .btn-primary {
+    @apply bg-rabuste-gold hover:bg-rabuste-orange text-white font-bold py-3 px-6 rounded uppercase tracking-widest transition-all duration-300 shadow-lg hover:shadow-orange-500/20;
+  }
+
+  /* Cards */
+  .card-base {
+    @apply bg-rabuste-surface border border-rabuste-text/5 rounded-lg p-6 shadow-sm hover:border-rabuste-gold/30 transition-all;
   }
 }

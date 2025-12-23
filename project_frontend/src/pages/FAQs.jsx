@@ -12,10 +12,7 @@ const faqData = [
 ];
 
 const FAQ = ({ isPreview = false }) => {
-  // If preview, show only first 3. Otherwise show all.
   const displayedFAQs = isPreview ? faqData.slice(0, 3) : faqData;
-  
-  // State for accordion functionality
   const [openIndex, setOpenIndex] = useState(null);
 
   const toggleFAQ = (index) => {
@@ -25,27 +22,28 @@ const FAQ = ({ isPreview = false }) => {
   return (
     <div className="px-6 py-20 bg-rabuste-bg">
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl md:text-4xl font-serif font-bold text-center mb-12 text-white">
+        {/* FIX: text-white -> text-rabuste-text */}
+        <h1 className="text-3xl md:text-4xl font-serif font-bold text-center mb-12 text-rabuste-text">
           Frequently Asked Questions
         </h1>
 
         <div className="space-y-4">
           {displayedFAQs.map((faq, index) => (
+            // FIX: bg-white/5 -> bg-rabuste-surface, border-white/10 -> border-rabuste-text/10
             <div 
               key={index} 
-              className="border border-white/10 rounded-sm bg-white/5 overflow-hidden"
+              className="border border-rabuste-text/10 rounded-sm bg-rabuste-surface overflow-hidden"
             >
               <button
                 onClick={() => toggleFAQ(index)}
-                className="w-full flex justify-between items-center p-6 text-left hover:bg-white/5 transition-colors"
+                className="w-full flex justify-between items-center p-6 text-left hover:bg-rabuste-text/5 transition-colors"
               >
                 <span className="text-lg font-semibold text-rabuste-text">{faq.question}</span>
                 {openIndex === index ? <ChevronUp className="text-rabuste-gold" /> : <ChevronDown className="text-rabuste-muted" />}
               </button>
               
-              {/* Accordion Content */}
               {openIndex === index && (
-                <div className="p-6 pt-0 text-gray-400 leading-relaxed border-t border-white/5">
+                <div className="p-6 pt-0 text-rabuste-muted leading-relaxed border-t border-rabuste-text/5">
                   {faq.answer}
                 </div>
               )}
@@ -53,7 +51,6 @@ const FAQ = ({ isPreview = false }) => {
           ))}
         </div>
 
-        {/* 'See More' Button */}
         {isPreview && (
           <div className="flex justify-center mt-10">
             <Link 

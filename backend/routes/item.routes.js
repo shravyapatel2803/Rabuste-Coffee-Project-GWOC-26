@@ -1,14 +1,24 @@
 import express from "express";
-import {getMenuItems,getShopItems,getMenuCategories,addItem,getAllItems,getItemById,updateItem,deleteItem,} from "../controllers/item.controller.js";
+import {
+  getMenuItems,
+  getShopItems,
+  getMenuCategories,
+  addItem,
+  getAllItems,
+  getItemById,
+  updateItem,
+  deleteItem,
+} from "../controllers/item.controller.js";
 
 const router = express.Router();
-//USER SIDE 
+
+// USER SIDE
 router.get("/menu", getMenuItems);
 router.get("/shop", getShopItems);
 router.get("/menu/categories", getMenuCategories);
+router.get("/items/:id", getItemById); // <--- ADDED THIS NEW ROUTE
 
-
-//ADMIN SIDE
+// ADMIN SIDE
 router.post("/admin/items", addItem);
 router.get("/admin/items", getAllItems);
 router.get("/admin/items/:id", getItemById);

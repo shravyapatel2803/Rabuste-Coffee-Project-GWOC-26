@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { ShoppingBag, ChevronRight, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "../context/CartContext";
-import { apiClient } from "../api/client"; // Import our "backend" handler
+import { apiClient } from "../api/client"; 
 
 const Shop = ({ isPreview = false }) => {
   const [products, setProducts] = useState([]);
@@ -11,7 +11,6 @@ const Shop = ({ isPreview = false }) => {
   const { cart, addToCart, totalPrice } = useCart();
 
   useEffect(() => {
-    // Fetch data using the client
     const loadData = async () => {
       try {
         const data = await apiClient.getProducts();
@@ -30,26 +29,28 @@ const Shop = ({ isPreview = false }) => {
   }
 
   return (
-    <div className="px-6 py-20 bg-rabuste-bg relative min-h-screen">
+    <div className="px-6 py-16 md:py-20 bg-rabuste-bg relative min-h-screen">
       <div className="max-w-7xl mx-auto">
-        {/* HEADER */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-12 md:mb-16">
           <span className="text-rabuste-orange font-bold tracking-[0.2em] uppercase text-xs mb-4 block">Takeaway Orders</span>
-          <h1 className="text-3xl md:text-5xl font-serif font-bold text-white">
+          {/* FIX: text-white -> text-rabuste-text */}
+          <h1 className="text-3xl md:text-5xl font-serif font-bold text-rabuste-text">
             {isPreview ? "Signature Roasts" : "Shop for Takeaway"}
           </h1>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 pb-32">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 pb-32">
           {products.map((product) => (
-            <div key={product.id} className="bg-white/5 border border-white/10 rounded-sm overflow-hidden hover:border-rabuste-orange/50 transition-all group">
+            // FIX: bg-white/5 -> bg-rabuste-text/5, border-white/10 -> border-rabuste-text/10
+            <div key={product.id} className="bg-rabuste-text/5 border border-rabuste-text/10 rounded-sm overflow-hidden hover:border-rabuste-orange/50 transition-all group">
               <div className="relative h-64 overflow-hidden">
                 <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
               </div>
               <div className="p-6">
-                <h2 className="text-xl font-serif font-bold mb-2 text-white">{product.name}</h2>
-                <p className="text-rabuste-muted text-xs mb-4">{product.description}</p>
-                <div className="flex justify-between items-center border-t border-white/10 pt-4">
+                {/* FIX: text-white -> text-rabuste-text */}
+                <h2 className="text-xl font-serif font-bold mb-2 text-rabuste-text">{product.name}</h2>
+                <p className="text-rabuste-muted text-xs mb-4 line-clamp-2">{product.description}</p>
+                <div className="flex justify-between items-center border-t border-rabuste-text/10 pt-4">
                   <span className="text-lg font-bold text-rabuste-gold">₹{product.price.sellingPrice}</span>
                   <button 
                     onClick={() => addToCart(product)}
@@ -64,7 +65,6 @@ const Shop = ({ isPreview = false }) => {
         </div>
       </div>
 
-      {/* Floating Cart Bar */}
       <AnimatePresence>
         {cart.length > 0 && (
           <motion.div 
