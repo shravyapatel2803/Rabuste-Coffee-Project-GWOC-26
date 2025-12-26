@@ -11,15 +11,32 @@ dotenv.config();
 connectDB();
 
 const app = express();
+const allowedOrigins = [
+  "http://localhost:5173", // user frontend
+  "http://localhost:5174", // admin frontend
+];
 
-app.use(cors());
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("CORS not allowed"));
+      }
+    },
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 app.get("/", (req, res) => {
   res.status(200).send("Rabuste Backend Running 🚀");
 });
 
-app.use("/api/items", itemRoutes);
+app.use("/api", itemRoutes);
 app.use("/api/art", artRoutes);
 app.use("/api/workshops", workshopRoutes);
 

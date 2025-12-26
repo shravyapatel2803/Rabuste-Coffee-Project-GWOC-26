@@ -26,6 +26,13 @@ const itemSchema = new mongoose.Schema({
     type: String  // drink | product | food | merchandise
   },
 
+  showIn: {
+      type: [String],
+      enum: ["menu", "shop"],
+      required: true,
+      default: ["menu"]
+    },
+
   roastType: {
     type: String,
     default: null // light | medium | dark | extra-dark | null
@@ -55,9 +62,9 @@ const itemSchema = new mongoose.Schema({
 
   caffeineLevel: {
     type: Number,
-    min: 1,
+    min: 0,
     max: 5
-    // 1 = low caffeine
+    // 0 = low caffeine
     // 5 = high caffeine kick
   },
 
@@ -81,6 +88,7 @@ const itemSchema = new mongoose.Schema({
 
   image: {
     url: String,
+    publicId: String,
     alt: String
   },
 
@@ -106,4 +114,5 @@ const itemSchema = new mongoose.Schema({
  { timestamps: true });
 
 const Item = mongoose.model("Item", itemSchema);
+
 export default Item;
