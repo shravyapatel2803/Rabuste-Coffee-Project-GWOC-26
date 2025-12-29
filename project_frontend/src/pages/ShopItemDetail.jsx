@@ -1,41 +1,44 @@
 // src/pages/ShopItemDetail.jsx
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { apiClient } from "../api/client";
 import { useCart } from "../context/CartContext";
 import { Loader2, ArrowLeft, ShoppingBag, Check } from "lucide-react";
+
 import Navbar from "../components/common/Navbar";
 import Footer from "../components/common/Footer";
+import { getUserItemBySlug } from "../api/item.api";
 
 const ShopItemDetail = () => {
-  const { id } = useParams();
+  const { id: slug } = useParams(); // 🔑 slug
   const navigate = useNavigate();
   const { addToCart } = useCart();
-  
+
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [added, setAdded] = useState(false);
 
   useEffect(() => {
     const fetchItem = async () => {
+      setLoading(true);
       try {
-        const data = await apiClient.getProduct(id);
-        setItem(data);
-      } catch (error) {
-        console.error("Error fetching shop item:", error);
+        const res = await getUserItemBySlug(slug);
+        setItem(res.data);
+      } catch (err) {
+        console.error("SHOP ITEM FETCH ERROR", err);
+        setItem(null);
       } finally {
         setLoading(false);
       }
     };
+
     fetchItem();
-  }, [id]);
+  }, [slug]);
 
   const handleAddToCart = () => {
-    if (item) {
-      addToCart(item);
-      setAdded(true);
-      setTimeout(() => setAdded(false), 2000); // Reset button state after 2s
-    }
+    if (!item) return;
+    addToCart(item);
+    setAdded(true);
+    setTimeout(() => setAdded(false), 2000);
   };
 
   if (loading) {
@@ -46,65 +49,75 @@ const ShopItemDetail = () => {
     );
   }
 
-  if (!item) return <div className="min-h-screen bg-rabuste-bg text-rabuste-text flex justify-center pt-32">Item not found</div>;
+  if (!item) {
+    return (
+      <div className="min-h-screen bg-rabuste-bg text-rabuste-text flex justify-center pt-32">
+        Item not found
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-rabuste-bg text-rabuste-text">
       <Navbar />
-      
+
       <div className="pt-32 px-6 max-w-6xl mx-auto pb-20">
-        <button 
-          onClick={() => navigate(-1)} 
+        {/* BACK */}
+        <button
+          onClick={() => navigate(-1)}
           className="flex items-center gap-2 text-rabuste-muted hover:text-rabuste-orange transition-colors mb-12 uppercase tracking-widest text-xs font-bold"
         >
-          <ArrowLeft size={16} /> Back to Shop
+          <ArrowLeft size={16} /> Back
         </button>
 
         <div className="grid md:grid-cols-2 gap-12 md:gap-24 items-center">
-          {/* Image */}
-          <div className="relative group">
-            <div className="absolute inset-0 bg-rabuste-orange/20 rounded-full blur-[100px] pointer-events-none" />
+          {/* IMAGE */}
+          <div className="relative">
             <div className="relative rounded-2xl overflow-hidden border border-rabuste-text/10 shadow-2xl">
-              <img 
-                src={item.image} 
-                alt={item.name} 
-                className="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-700" 
+              <img
+                src={item.image?.url}
+                alt={item.name}
+                className="w-full h-auto object-cover"
               />
             </div>
           </div>
 
-          {/* Details */}
+          {/* DETAILS */}
           <div>
             <span className="text-rabuste-orange font-bold tracking-[0.2em] uppercase text-xs mb-4 block">
-              Signature Roast
+              {item.category}
             </span>
-            <h1 className="text-4xl md:text-6xl font-serif font-bold mb-6 leading-tight">
+
+            <h1 className="text-4xl md:text-6xl font-serif font-bold mb-6">
               {item.name}
             </h1>
+
+            {/* ✅ FULL DESCRIPTION */}
             <p className="text-rabuste-muted text-lg leading-relaxed mb-8 font-light">
               {item.description}
             </p>
 
             <div className="flex items-center gap-8 border-t border-rabuste-text/10 pt-8 mt-8">
               <span className="text-3xl font-serif font-bold text-rabuste-gold">
-                ₹{item.price.sellingPrice}
+                ₹{item.price}
               </span>
-              
-              <button 
+
+              <button
                 onClick={handleAddToCart}
                 className={`flex items-center gap-2 px-8 py-3 font-bold uppercase tracking-widest text-xs rounded-sm transition-all ${
-                    added 
-                    ? "bg-green-600 text-white hover:bg-green-700" 
+                  added
+                    ? "bg-green-600 text-white"
                     : "bg-rabuste-text text-rabuste-bg hover:bg-rabuste-orange hover:text-white"
                 }`}
               >
-                 {added ? <Check size={18} /> : <ShoppingBag size={18} />} 
-                 {added ? "Added" : "Add to Cart"}
-               </button>
+                {added ? <Check size={18} /> : <ShoppingBag size={18} />}
+                {added ? "Added" : "Add to Cart"}
+              </button>
             </div>
           </div>
         </div>
       </div>
+
       <Footer />
     </div>
   );

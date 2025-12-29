@@ -30,14 +30,14 @@ const parseJSON = (v) => {
   }
 };
 
-// ✅ HELPER: Convert empty string or 0 to null for min:1 fields
+//  HELPER: Convert empty string or 0 to null for min:1 fields
 const sanitizeMinOne = (val) => {
   if (val === "" || val === null || val === undefined) return null; // Send null to DB
   const num = Number(val);
   return num >= 1 ? num : null; // If 0, treat as null
 };
 
-// ✅ HELPER: Allow 0 for min:0 fields
+//  HELPER: Allow 0 for min:0 fields
 const sanitizeMinZero = (val) => {
   if (val === "" || val === null || val === undefined) return null;
   const num = Number(val);
@@ -160,7 +160,7 @@ export const updateItem = async ({ id, body, file, cloudinary }) => {
   const payload = buildItemPayload({ body });
   Object.assign(item, payload);
 
-  // ✅ upload new image FIRST
+  // upload new image FIRST
   if (file && cloudinary?.uploader) {
     const uploaded = await cloudinary.uploader.upload(file.path, {
       folder: "items",
@@ -273,25 +273,39 @@ const buildFilter = ({ query, context }) => {
 export const listItems = async ({ query = {}, context, mode }) => {
   const filter = buildFilter({ query, context });
 
-  // user side menu page without pagenation
+  // user side menu
   if (context === "user" && mode === "menu") {
     const items = await Item.find(filter)
-      .sort({ category: 1, price: 1 }) 
+      .sort({ category: 1, price: 1 })
       .lean();
 
     return { items };
   }
 
-  // userside shop page with pagenation
+  // user side shop
   if (context === "user" && mode === "shop") {
     const limit = Number(query.limit || 12);
+    const cursor = query.cursor || null;
 
-    if (query.cursor) {
-      filter._id = { $lt: query.cursor }; 
+    if (!cursor) {
+      const items = await Item.aggregate([
+        { $match: filter },
+        { $sample: { size: limit } },
+      ]);
+
+      return {
+        items,
+        hasMore: true,
+        nextCursor: items.at(-1)?._id || null,
+      };
     }
 
-    const items = await Item.find(filter)
-      .sort({ _id: -1 }) 
+    //  NEXT LOADS → CURSOR BASED (STABLE)
+    const items = await Item.find({
+      ...filter,
+      _id: { $lt: cursor },
+    })
+      .sort({ _id: -1 })
       .limit(limit + 1)
       .lean();
 
@@ -301,11 +315,11 @@ export const listItems = async ({ query = {}, context, mode }) => {
     return {
       items,
       hasMore,
-      nextCursor: items.length ? items[items.length - 1]._id : null,
+      nextCursor: items.at(-1)?._id || null,
     };
   }
 
-  // admin side no pagenation
+  // admin
   if (context === "admin") {
     const items = await Item.find(filter)
       .sort({ createdAt: -1 })
@@ -317,11 +331,9 @@ export const listItems = async ({ query = {}, context, mode }) => {
     };
   }
 
-  return {
-    items: [],
-    total: 0,
-  };
+  return { items: [], total: 0 };
 };
+
 
 // get single item by id admin side
 export const getItemById = async ({ id }) => {
