@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom'; // Import useLocation
 import { Coffee, Menu, X, Sun, Moon } from 'lucide-react';
-
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -33,6 +32,7 @@ const Navbar = () => {
     { name: 'Menu', href: '/menu' },
     { name: 'Shop', href: '/shop' },
     { name: 'Gallery', href: '/gallery' },
+    { name: 'Workshops', href: '/workshops' },
   ];
 
   return (

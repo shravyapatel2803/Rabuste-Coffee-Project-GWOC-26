@@ -24,6 +24,35 @@
     --color-gold: 212 175 55;      /* #D4AF37 */
     --color-orange: 194 94 0;      /* #C25E00 */
   }
+  /* --- NEW: CUSTOM SCROLLBAR --- */
+
+/* 1. The Scrollbar Track (Background) */
+::-webkit-scrollbar {
+  width: 10px; /* Slim width for elegance */
+}
+
+/* 2. The Background of the bar */
+::-webkit-scrollbar-track {
+  background: rgb(var(--color-bg)); /* Matches your page background seamlessly */
+}
+
+/* 3. The Moving Part (Thumb) */
+::-webkit-scrollbar-thumb {
+  background-color: rgb(var(--color-orange)); /* Rabuste Orange */
+  border-radius: 9999px; /* Rounded pill shape */
+  border: 2px solid rgb(var(--color-bg)); /* Creates a "floating" effect with padding */
+}
+
+/* 4. Hover Effect */
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(var(--color-gold)); /* Turns Gold when you grab it */
+}
+
+/* Firefox Support (Firefox uses different syntax) */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--color-orange)) rgb(var(--color-bg));
+}
 }
 
 html {
@@ -36,4 +65,43 @@ html {
 ::selection {
   background-color: rgb(var(--color-orange));
   color: white;
+}
+@media (min-width: 768px) {
+  * {
+    cursor: none !important;
+  }
+}
+/* Add a slow float animation for elements */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Enhances the video background text contrast */
+.mix-blend-overlay {
+  mix-blend-mode: overlay;
+}
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important; /* Lenis handles the smoothing */
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
 }

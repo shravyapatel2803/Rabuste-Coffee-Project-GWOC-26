@@ -7,44 +7,60 @@ import Gallery from '../pages/ArtGallery';
 import Franchise from "../pages/Franchise";
 import Footer from '../componets/Footer';
 import FAQ from "../pages/FAQs";
-import Shop from './Shop'; // Import the new component
-
+import Shop from './Shop';
+import Reveal from '../componets/Reveal'; // Import existing Reveal
+import PageTransition from '../componets/PageTransition'; // Import the new transition
 
 const Home = () => {
   return (
-    <main className="min-h-screen bg-rabuste-bg text-rabuste-text selection:bg-rabuste-orange selection:text-white">
-      <Navbar />
-      <Hero />
-      
-      <div className="relative z-10 bg-rabuste-bg">
-        <section id="about">
-          <Features />
-        </section>
-
-        <section id="menu">
-          <MenuSection isPreview={true} />
-        </section>
+    <PageTransition>
+      <main className="min-h-screen bg-rabuste-bg text-rabuste-text selection:bg-rabuste-orange selection:text-white">
+        <Navbar />
+        <Hero />
         
-        {/* Add the new Shop Section here */}
-        <section id="shop">
-          <Shop isPreview={true} />
-        </section>
+        <div className="relative z-10 bg-rabuste-bg">
+          {/* Wrap sections in Reveal for scroll animation */}
+          <section id="about">
+            <Reveal>
+              <Features />
+            </Reveal>
+          </section>
 
-        <section id="gallery">
-          <Gallery isPreview={true} />
-        </section>
+          <section id="menu">
+            <Reveal delay={0.1}>
+              <MenuSection isPreview={true} />
+            </Reveal>
+          </section>
+          
+          <section id="shop">
+            <Reveal delay={0.1}>
+              <Shop isPreview={true} />
+            </Reveal>
+          </section>
 
-        <section id="franchise">
-          <Franchise />
-        </section>
+          <section id="gallery">
+            <Reveal>
+              <Gallery isPreview={true} />
+            </Reveal>
+          </section>
 
-        <section id="faqs">
-          <FAQ isPreview={true} />
-        </section>
+          <section id="franchise">
+             {/* Staggered delay for variety */}
+            <Reveal delay={0.2}>
+              <Franchise />
+            </Reveal>
+          </section>
 
-        <Footer />
-      </div>
-    </main>
+          <section id="faqs">
+            <Reveal>
+              <FAQ isPreview={true} />
+            </Reveal>
+          </section>
+
+          <Footer />
+        </div>
+      </main>
+    </PageTransition>
   );
 };
 
