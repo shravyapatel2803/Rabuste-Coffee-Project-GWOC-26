@@ -1,8 +1,8 @@
 import React from 'react';
-import Navbar from '../componets/Navbar';
-import Footer from '../componets/Footer';
+import Navbar from '../components/common/Navbar';
+import Footer from '../components/common/Footer';
 import FAQ from './FAQs';
-import PageTransition from '../componets/PageTransition';
+import PageTransition from '../components/common/PageTransition';
 
 const FullFAQ = () => {
   return (

@@ -1,91 +1,77 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import API from "../api/api";
-import Navbar from "../componets/Navbar";
-import Footer from "../componets/Footer";
+import { useParams } from "react-router-dom";
+import { fetchArtBySlug } from "../api/art.api";
+
+import ArtHero from "../components/art/ArtHero";
+import ArtistCard from "../components/art/ArtistCard";
+import CoffeePairingCard from "../components/art/CoffeePairingCard";
+import ArtStory from "../components/art/ArtStory";
+import ArtTags from "../components/art/ArtTags";
+import ArtNavigation from "../components/art/ArtNavigation";
 
 const ArtDetail = () => {
-  const { id } = useParams();
+  const { slug } = useParams();
+
   const [art, setArt] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchArt = async () => {
-      try {
-        const res = await API.get(`/art/${id}`);
-        setArt(res.data);
-      } catch (error) {
-        console.error("Error fetching art details:", error);
-      } finally {
+    if (!slug) return;
+
+    fetchArtBySlug(slug)
+      .then((res) => {
+        setArt(res?.data ?? res);
+      })
+      .catch(() => {
+        setArt(null);
+      })
+      .finally(() => {
         setLoading(false);
-      }
-    };
-    fetchArt();
-  }, [id]);
+      });
+  }, [slug]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-rabuste-bg flex justify-center items-center">
-        <p className="text-xl">Loading...</p>
-      </div>
-    );
+    return <div className="p-10">Loading artwork...</div>;
   }
 
   if (!art) {
-    return (
-      <div className="min-h-screen bg-rabuste-bg flex justify-center items-center flex-col">
-        <p className="text-xl mb-4">Art not found.</p>
-        <Link to="/gallery" className="text-rabuste-orange underline">Back to Gallery</Link>
-      </div>
-    );
+    return <div className="p-10">Artwork not found</div>;
   }
 
   return (
-    <div className="min-h-screen bg-rabuste-bg text-rabuste-text selection:bg-rabuste-orange selection:text-white">
-      <Navbar />
-      
-      <div className="pt-32 px-6 max-w-6xl mx-auto pb-16">
-        <Link 
-          to="/gallery" 
-          className="text-rabuste-orange hover:text-rabuste-gold mb-8 inline-block font-semibold"
-        >
-          &larr; Back to Gallery
-        </Link>
-        
-        <div className="grid md:grid-cols-2 gap-12">
-          {/* Image Section */}
-          <div className="rounded-lg overflow-hidden shadow-2xl border-4 border-white">
-            <img 
-              src={art.image} 
-              alt={art.title} 
-              className="w-full h-auto object-cover" 
-            />
-          </div>
+    <div className="bg-[#f7f3ee] dark:bg-[#1c1916] text-[#2b1e16] dark:text-[#f5efe6]">
+      {/* HERO */}
+      <ArtHero art={art} />
 
-          {/* Details Section */}
-          <div className="flex flex-col justify-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">{art.title}</h1>
-            
-            {art.artist && (
-              <p className="text-xl text-gray-500 mb-6 italic">By {art.artist}</p>
-            )}
-            
-            <div className="prose prose-lg text-gray-700 mb-8">
-              <p>{art.description}</p>
-            </div>
+      <div className="max-w-7xl mx-auto px-4 py-12 grid lg:grid-cols-3 gap-10">
+        {/* LEFT */}
+        <div className="lg:col-span-2 space-y-10">
+          <ArtistCard
+            artist={{
+              name: art.artistName,
+              bio: art.artistBio,
+              instagram: art.artistInstagram,
+              website: art.artistWebsite,
+            }}
+            location={art.displayLocation}
+            views={art.viewCount}
+          />
 
-            <div className="mt-4 border-t pt-6">
-                <div className="flex items-center justify-between">
-                    <span className={`px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wide ${art.available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                        {art.available ? "Available" : "Sold Out"}
-                    </span>
-                </div>
-            </div>
-          </div>
+          <ArtStory story={art.storyBehindArt} />
+
+          <ArtTags tags={art.artMood || []} />
+        </div>
+
+        {/* RIGHT */}
+        <div className="space-y-8">
+          {/* Optional / Future-ready */}
+          {art.bestPairedCoffee && (
+            <CoffeePairingCard coffee={art.bestPairedCoffee} />
+          )}
         </div>
       </div>
 
-      <Footer />
+      <ArtNavigation />
     </div>
   );
 };

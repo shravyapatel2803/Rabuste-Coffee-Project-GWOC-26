@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Navbar from '../componets/Navbar';
+import Navbar from '../components/common/Navbar';
 import { CreditCard, Clock, Receipt, Coffee, Loader2, Trash2 } from 'lucide-react'; // Added Trash2
 import { useCart } from "../context/CartContext";
 import { apiClient } from "../api/client";

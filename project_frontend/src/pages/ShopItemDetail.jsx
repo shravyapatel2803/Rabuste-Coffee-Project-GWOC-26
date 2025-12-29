@@ -4,8 +4,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { apiClient } from "../api/client";
 import { useCart } from "../context/CartContext";
 import { Loader2, ArrowLeft, ShoppingBag, Check } from "lucide-react";
-import Navbar from "../componets/Navbar";
-import Footer from "../componets/Footer";
+import Navbar from "../components/common/Navbar";
+import Footer from "../components/common/Footer";
 
 const ShopItemDetail = () => {
   const { id } = useParams();

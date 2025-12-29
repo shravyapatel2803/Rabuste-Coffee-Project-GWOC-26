@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { apiClient } from '../api/client';
-import Navbar from '../componets/Navbar';
-import Footer from '../componets/Footer';
+import Navbar from '../components/common/Navbar';
+import Footer from '../components/common/Footer';
 import { Loader2, Calendar, Clock, MapPin, User, Mail, Phone, Ticket, CheckCircle, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
 

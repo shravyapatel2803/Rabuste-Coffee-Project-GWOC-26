@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import API from "../api/api";
 import { Loader2, ArrowLeft } from "lucide-react"; // Removed ShoppingBag
-import Navbar from "../componets/Navbar";
-import Footer from "../componets/Footer";
+import Navbar from "../components/common/Navbar";
+import Footer from "../components/common/Footer";
 
 const ItemDetail = () => {
   const { id } = useParams();

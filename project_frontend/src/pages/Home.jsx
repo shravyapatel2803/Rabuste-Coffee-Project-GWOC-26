@@ -1,15 +1,15 @@
 import React from 'react';
-import Navbar from '../componets/Navbar';
-import Hero from '../componets/Hero';
-import Features from '../componets/feature';
+import Navbar from '../components/common/Navbar';
+import Hero from '../components/common/Hero';
+import Features from '../components/feature';
 import MenuSection from './Menu';
 import Gallery from '../pages/ArtGallery';
 import Franchise from "../pages/Franchise";
-import Footer from '../componets/Footer';
+import Footer from '../components/common/Footer';
 import FAQ from "../pages/FAQs";
 import Shop from './Shop';
-import Reveal from '../componets/Reveal'; // Import existing Reveal
-import PageTransition from '../componets/PageTransition'; // Import the new transition
+import Reveal from '../components/Reveal'; // Import existing Reveal
+import PageTransition from '../components/common/PageTransition'; // Import the new transition
 
 const Home = () => {
   return (

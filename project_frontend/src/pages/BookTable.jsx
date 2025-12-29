@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Calendar, Clock, Users, Phone, Mail, User, MessageSquare, CheckCircle, Download, CalendarPlus, X } from 'lucide-react';
 import { motion } from 'framer-motion';
-import Navbar from '../componets/Navbar';
-import Footer from '../componets/Footer';
+import Navbar from '../components/common/Navbar';
+import Footer from '../components/common/Footer';
 
 const BookTable = () => {
   const [formData, setFormData] = useState({

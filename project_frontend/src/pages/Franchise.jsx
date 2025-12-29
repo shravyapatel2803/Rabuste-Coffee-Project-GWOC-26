@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Mail, MapPin, Loader2 } from 'lucide-react';
-import Reveal from '../componets/Reveal';
+import Reveal from '../components/Reveal';
 import API from '../api/api'; // Import your axios instance
 
 const Franchise = () => {

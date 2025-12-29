@@ -1,5 +1,5 @@
 import express from "express";
-import Workshop from "../models/Workshop.js";
+import Workshop from "../models/Workshop.model.js";
 
 const router = express.Router();
 

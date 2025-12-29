@@ -1,9 +1,9 @@
 // src/pages/Workshops.jsx
 import React, { useEffect, useState } from 'react';
 import { apiClient } from '../api/client';
-import Navbar from '../componets/Navbar';
-import Footer from '../componets/Footer';
-import PageTransition from '../componets/PageTransition';
+import Navbar from '../components/common/Navbar';
+import Footer from '../components/common/Footer';
+import PageTransition from '../components/common/PageTransition';
 import { Loader2, Calendar, Clock, Tag, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
