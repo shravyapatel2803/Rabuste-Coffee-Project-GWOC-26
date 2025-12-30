@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import slugPlugin from "../utils/slug.plugin.js";
 
 const artSchema = new mongoose.Schema(
   {
@@ -128,7 +129,7 @@ const artSchema = new mongoose.Schema(
     }
   },
   {
-    timestamps: { createdAt: true, updatedAt: false }
+    timestamps: { createdAt: true, updatedAt: true }
   }
 );
 
@@ -138,5 +139,7 @@ artSchema.index({ artStyle: 1 });
 artSchema.index({ availabilityStatus: 1 });
 artSchema.index({ visibility: 1, isCurrentlyDisplayed: 1 });
 artSchema.index({ createdAt: -1 });
+
+artSchema.plugin(slugPlugin, { source: "title" });
 
 export default mongoose.model("Art", artSchema);

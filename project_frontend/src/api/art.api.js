@@ -1,15 +1,11 @@
 import API from "./api";
 
-
 export const fetchPublicArts = (params = {}) =>
-  API.get("/art", { params });
+  API.get("/arts", { params });
 
-export const fetchArtBySlug = (slug) =>
-  API.get(`/art/${slug}`);
+export const fetchPublicArtBySlug = (slug) =>
+  API.get(`/arts/${slug}`);
 
-
-export const fetchArtMoods = () =>
-  API.get("/art/meta/moods");
-
-export const fetchArtStyles = () =>
-  API.get("/art/meta/styles");
+export const recordArtView = (slug) => {
+  return API.patch(`/arts/${slug}/view`);
+};

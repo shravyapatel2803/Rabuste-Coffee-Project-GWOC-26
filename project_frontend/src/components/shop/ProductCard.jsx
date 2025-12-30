@@ -32,7 +32,7 @@ const ProductCard = ({ product }) => {
           </h2>
         </Link>
 
-        {/* ✅ SHORT DESCRIPTION ONLY */}
+        {/* SHORT DESCRIPTION ONLY */}
         <p className="text-rabuste-muted text-xs mb-4 line-clamp-2">
           {product.shortDescription || ""}
         </p>

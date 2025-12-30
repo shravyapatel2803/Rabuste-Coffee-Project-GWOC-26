@@ -9,7 +9,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   const menuItems = [
     { path: '/', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
     { path: '/menu', label: 'Menu Items', icon: <Coffee size={20} /> },
-    { path: '/ArtListPage', label: 'Art Gallery', icon: <Palette size={20} /> },
+    { path: '/arts', label: 'Art Gallery', icon: <Palette size={20} /> },
     { path: '/workshops', label: 'Workshops', icon: <Calendar size={20} /> },
     { path: '/franchise', label: 'Enquiries', icon: <Users size={20} /> },
   ];

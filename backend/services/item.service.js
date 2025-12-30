@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import Item from "../models/Item.model.js";
+
 import {
   normalizeIdentifier,
   normalizeIdentifierArray,
@@ -7,7 +8,7 @@ import {
   normalizeOptionalString,
 } from "../utils/normalize.js";
 
-// Helper to remove undefined keys (BUT KEEP null)
+// Helper to remove undefined keys 
 const removeUndefined = (obj) => {
   Object.keys(obj).forEach((key) => {
     if (obj[key] === undefined) delete obj[key];
@@ -30,14 +31,12 @@ const parseJSON = (v) => {
   }
 };
 
-//  HELPER: Convert empty string or 0 to null for min:1 fields
 const sanitizeMinOne = (val) => {
-  if (val === "" || val === null || val === undefined) return null; // Send null to DB
+  if (val === "" || val === null || val === undefined) return null;
   const num = Number(val);
-  return num >= 1 ? num : null; // If 0, treat as null
+  return num >= 1 ? num : null;
 };
 
-//  HELPER: Allow 0 for min:0 fields
 const sanitizeMinZero = (val) => {
   if (val === "" || val === null || val === undefined) return null;
   const num = Number(val);
@@ -55,100 +54,47 @@ const buildItemPayload = ({ body }) => {
 
   return removeUndefined({
     name: body.name !== undefined ? normalizeFreeText(body.name) : undefined,
-
-    shortDescription:
-      body.shortDescription !== undefined
-        ? normalizeOptionalString(body.shortDescription)
-        : undefined,
-
-    description:
-      body.description !== undefined
-        ? normalizeFreeText(body.description)
-        : undefined,
-
-    price:
-      body.price !== undefined && body.price !== ""
-        ? Number(body.price)
-        : undefined,
-
+    shortDescription: body.shortDescription !== undefined ? normalizeOptionalString(body.shortDescription) : undefined,
+    description: body.description !== undefined ? normalizeFreeText(body.description) : undefined,
+    price: body.price !== undefined && body.price !== "" ? Number(body.price) : undefined,
     category: body.category ? normalizeIdentifier(body.category) : undefined,
     type: body.type ? normalizeIdentifier(body.type) : undefined,
-
-    roastType:
-      body.roastType && body.roastType !== ""
-        ? normalizeIdentifier(body.roastType)
-        : null,
-
-    showIn:
-      body.showIn !== undefined
-        ? normalizeIdentifierArray(ensureArray(body.showIn))
-        : undefined,
-
+    roastType: body.roastType && body.roastType !== "" ? normalizeIdentifier(body.roastType) : null,
+    showIn: body.showIn !== undefined ? normalizeIdentifierArray(ensureArray(body.showIn)) : undefined,
     tags: body.tags ? normalizeIdentifierArray(ensureArray(body.tags)) : undefined,
-    flavorNotes: body.flavorNotes
-      ? normalizeIdentifierArray(ensureArray(body.flavorNotes))
-      : undefined,
-
-    bestForMood: body.bestForMood
-      ? normalizeIdentifierArray(ensureArray(body.bestForMood))
-      : undefined,
-
-    bestTime: body.bestTime
-      ? normalizeIdentifierArray(ensureArray(body.bestTime))
-      : undefined,
-
-    strengthLevel:
-  body.strengthLevel !== undefined
-    ? sanitizeMinOne(body.strengthLevel)
-    : undefined,
-
-bitterness:
-  body.bitterness !== undefined
-    ? sanitizeMinOne(body.bitterness)
-    : undefined,
-
-caffeineLevel:
-  body.caffeineLevel !== undefined
-    ? sanitizeMinZero(body.caffeineLevel)
-    : undefined,
-
-    milkBased:
-      body.milkBased !== undefined
-        ? normalizeBoolean(body.milkBased)
-        : undefined,
-
-    bestPairedArtMood: Array.isArray(parsedArtMoods)
-      ? parsedArtMoods.filter(Boolean)
-      : undefined,
-
-    pairingExplanation:
-      parsedExplanations && typeof parsedExplanations === "object"
-        ? new Map(Object.entries(parsedExplanations))
-        : undefined,
-
-    isFeatured:
-      body.isFeatured !== undefined
-        ? normalizeBoolean(body.isFeatured)
-        : undefined,
-
-    availability:
-      body.isSoldOut !== undefined
-        ? {
-            isSoldOut,
-            isAvailable: !isSoldOut,
-          }
-        : undefined,
+    flavorNotes: body.flavorNotes ? normalizeIdentifierArray(ensureArray(body.flavorNotes)) : undefined,
+    bestForMood: body.bestForMood ? normalizeIdentifierArray(ensureArray(body.bestForMood)) : undefined,
+    bestTime: body.bestTime ? normalizeIdentifierArray(ensureArray(body.bestTime)) : undefined,
+    strengthLevel: body.strengthLevel !== undefined ? sanitizeMinOne(body.strengthLevel) : undefined,
+    bitterness: body.bitterness !== undefined ? sanitizeMinOne(body.bitterness) : undefined,
+    caffeineLevel: body.caffeineLevel !== undefined ? sanitizeMinZero(body.caffeineLevel) : undefined,
+    milkBased: body.milkBased !== undefined ? normalizeBoolean(body.milkBased) : undefined,
+    bestPairedArtMood: Array.isArray(parsedArtMoods) ? parsedArtMoods.filter(Boolean) : undefined,
+    pairingExplanation: parsedExplanations && typeof parsedExplanations === "object" ? new Map(Object.entries(parsedExplanations)) : undefined,
+    isFeatured: body.isFeatured !== undefined ? normalizeBoolean(body.isFeatured) : undefined,
+    availability: body.isSoldOut !== undefined ? { isSoldOut, isAvailable: !isSoldOut } : undefined,
   });
 };
 
 
-// add new item
-export const createItem = async ({ body, file }) => {
-  const payload = buildItemPayload({ body, file });
+// create item
+export const createItem = async ({ body, file, cloudinary }) => {
+  const payload = buildItemPayload({ body });
+
+  if (file) {
+    payload.image = {
+      url: file.path,   
+      publicId: file.filename,
+      alt: body.name || "Coffee Item",
+    };
+  } else {
+    throw new Error("IMAGE_REQUIRED");
+  }
+
   return await Item.create(payload);
 };
 
-// update existing item
+//delete old
 export const updateItem = async ({ id, body, file, cloudinary }) => {
   if (!mongoose.Types.ObjectId.isValid(id)) {
     throw new Error("INVALID_ID");
@@ -160,21 +106,14 @@ export const updateItem = async ({ id, body, file, cloudinary }) => {
   const payload = buildItemPayload({ body });
   Object.assign(item, payload);
 
-  // upload new image FIRST
-  if (file && cloudinary?.uploader) {
-    const uploaded = await cloudinary.uploader.upload(file.path, {
-      folder: "items",
-      overwrite: true,
-    });
-
-    // delete old image AFTER successful upload
-    if (item.image?.publicId) {
+  if (file) {
+    if (item.image?.publicId && cloudinary) {
       await cloudinary.uploader.destroy(item.image.publicId);
     }
 
     item.image = {
-      url: uploaded.secure_url,
-      publicId: uploaded.public_id,
+      url: file.path,
+      publicId: file.filename,
       alt: item.name,
     };
   }
@@ -183,67 +122,35 @@ export const updateItem = async ({ id, body, file, cloudinary }) => {
 };
 
 
-// delete item
 export const deleteItem = async ({ id, cloudinary }) => {
   if (!id) throw new Error("INVALID_ID");
 
   const item = await Item.findById(id);
   if (!item) throw new Error("ITEM_NOT_FOUND");
 
-  // 🔒 SAFETY CHECK
-  if (item.image?.publicId && cloudinary?.uploader) {
+  if (item.image?.publicId && cloudinary) {
     await cloudinary.uploader.destroy(item.image.publicId);
   }
 
   await item.deleteOne();
 };
 
-
-
 // build filter for listing
 const buildFilter = ({ query, context }) => {
   const filter = {};
-
-  // USER ONLY
   if (context === "user") {
     filter.visibility = "public";
     filter["availability.isAvailable"] = true;
   }
-
-  // common filters
-  if (query.category)
-    filter.category = normalizeIdentifier(query.category);
-
-  if (query.type)
-    filter.type = normalizeIdentifier(query.type);
-
-  if (query.roastType)
-    filter.roastType = normalizeIdentifier(query.roastType);
-
-  if (query.showIn)
-    filter.showIn = normalizeIdentifier(query.showIn);
-
-  if (query.isFeatured !== undefined)
-    filter.isFeatured = query.isFeatured === "true";
-
-  if (query.milkBased !== undefined)
-    filter.milkBased = query.milkBased === "true";
-
-  if (query.bestForMood)
-    filter.bestForMood = {
-      $in: normalizeIdentifierArray(query.bestForMood),
-    };
-
-  if (query.bestTime)
-    filter.bestTime = {
-      $in: normalizeIdentifierArray(query.bestTime),
-    };
-
-  if (query.tags)
-    filter.tags = {
-      $in: normalizeIdentifierArray(query.tags),
-    };
-
+  if (query.category) filter.category = normalizeIdentifier(query.category);
+  if (query.type) filter.type = normalizeIdentifier(query.type);
+  if (query.roastType) filter.roastType = normalizeIdentifier(query.roastType);
+  if (query.showIn) filter.showIn = normalizeIdentifier(query.showIn);
+  if (query.isFeatured !== undefined) filter.isFeatured = query.isFeatured === "true";
+  if (query.milkBased !== undefined) filter.milkBased = query.milkBased === "true";
+  if (query.bestForMood) filter.bestForMood = { $in: normalizeIdentifierArray(query.bestForMood) };
+  if (query.bestTime) filter.bestTime = { $in: normalizeIdentifierArray(query.bestTime) };
+  if (query.tags) filter.tags = { $in: normalizeIdentifierArray(query.tags) };
   if (query.search) {
     const search = normalizeFreeText(query.search);
     if (search) {
@@ -253,119 +160,63 @@ const buildFilter = ({ query, context }) => {
       ];
     }
   }
-
-  // ADMIN ONLY
   if (context === "admin") {
-    if (query.status === "soldout")
-      filter["availability.isSoldOut"] = true;
-
-    if (query.status === "available")
-      filter["availability.isAvailable"] = true;
-
-    if (query.status === "draft")
-      filter.visibility = "hidden";
+    if (query.status === "soldout") filter["availability.isSoldOut"] = true;
+    if (query.status === "available") filter["availability.isAvailable"] = true;
+    if (query.status === "draft") filter.visibility = "hidden";
   }
-
   return filter;
 };
 
-// list items with pagination
 export const listItems = async ({ query = {}, context, mode }) => {
   const filter = buildFilter({ query, context });
-
-  // user side menu
   if (context === "user" && mode === "menu") {
-    const items = await Item.find(filter)
-      .sort({ category: 1, price: 1 })
-      .lean();
-
+    const items = await Item.find(filter).sort({ category: 1, price: 1 }).lean();
     return { items };
   }
-
-  // user side shop
   if (context === "user" && mode === "shop") {
     const limit = Number(query.limit || 12);
     const cursor = query.cursor || null;
-
     if (!cursor) {
-      const items = await Item.aggregate([
-        { $match: filter },
-        { $sample: { size: limit } },
-      ]);
-
-      return {
-        items,
-        hasMore: true,
-        nextCursor: items.at(-1)?._id || null,
-      };
+      const items = await Item.aggregate([{ $match: filter }, { $sample: { size: limit } }]);
+      return { items, hasMore: true, nextCursor: items.at(-1)?._id || null };
     }
-
-    //  NEXT LOADS → CURSOR BASED (STABLE)
-    const items = await Item.find({
-      ...filter,
-      _id: { $lt: cursor },
-    })
-      .sort({ _id: -1 })
-      .limit(limit + 1)
-      .lean();
-
+    const items = await Item.find({ ...filter, _id: { $lt: cursor } }).sort({ _id: -1 }).limit(limit + 1).lean();
     const hasMore = items.length > limit;
     if (hasMore) items.pop();
-
-    return {
-      items,
-      hasMore,
-      nextCursor: items.at(-1)?._id || null,
-    };
+    return { items, hasMore, nextCursor: items.at(-1)?._id || null };
   }
-
-  // admin
   if (context === "admin") {
-    const items = await Item.find(filter)
-      .sort({ createdAt: -1 })
-      .lean();
-
-    return {
-      items,
-      total: items.length,
-    };
+    const items = await Item.find(filter).sort({ createdAt: -1 }).lean();
+    return { items, total: items.length };
   }
-
   return { items: [], total: 0 };
 };
 
-
-// get single item by id admin side
 export const getItemById = async ({ id }) => {
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    throw new Error("INVALID_ID");
-  }
-
+  if (!mongoose.Types.ObjectId.isValid(id)) throw new Error("INVALID_ID");
   const item = await Item.findById(id);
-  if (!item) {
-    throw new Error("NOT_FOUND");
-  }
-
+  if (!item) throw new Error("NOT_FOUND");
   return item;
 };
 
-// get single item by slug user side
+// getItemBySlug 
 export const getItemBySlug = async ({ slug }) => {
-  const item = await Item.findOne({
-    slug,
-    visibility: "public",
-    "availability.isAvailable": true,
-  });
+  let query = { 
+    visibility: "public", 
+    "availability.isAvailable": true 
+  };
 
-  if (!item) {
-    throw new Error("NOT_FOUND");
+  let item = await Item.findOne({ ...query, slug });
+
+  if (!item && mongoose.Types.ObjectId.isValid(slug)) {
+    item = await Item.findOne({ ...query, _id: slug });
   }
 
+  if (!item) throw new Error("NOT_FOUND");
   return item;
 };
 
-
-// fetch metadata (categories / types)
 export const fetchItemCategoriesService = async () => {
   const categories = await Item.distinct("category");
   return categories.filter(Boolean);
@@ -374,4 +225,43 @@ export const fetchItemCategoriesService = async () => {
 export const fetchItemTypesService = async () => {
   const types = await Item.distinct("type");
   return types.filter(Boolean);
+};
+
+export const fetchArtMoodsService = async () => {
+  const moods = await Item.distinct("bestPairedArtMood");;
+  return moods.filter(Boolean);
+};
+
+
+//  Item View Count + Bestseller Logic
+export const incrementItemViewService = async (identifier) => {
+  let query = { 
+    visibility: "public", 
+    "availability.isAvailable": true 
+  };
+
+  if (mongoose.Types.ObjectId.isValid(identifier)) {
+    query._id = identifier;
+  } else {
+    query.slug = identifier;
+  }
+
+  let item = await Item.findOneAndUpdate(
+    query,
+    { $inc: { viewCount: 1 } }, 
+    { new: true } 
+  );
+
+  if (!item) throw new Error("NOT_FOUND");
+
+  if (item.viewCount > 100) {
+    const alreadyHasTag = item.tags.some(tag => tag.toLowerCase() === "bestseller");
+
+    if (!alreadyHasTag) {
+      item.tags.push("bestseller"); 
+      await item.save(); 
+    }
+  }
+
+  return item.viewCount;
 };

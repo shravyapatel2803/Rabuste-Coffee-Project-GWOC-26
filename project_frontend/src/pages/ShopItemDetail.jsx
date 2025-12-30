@@ -1,15 +1,14 @@
 // src/pages/ShopItemDetail.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react"; 
 import { useParams, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { Loader2, ArrowLeft, ShoppingBag, Check } from "lucide-react";
-
 import Navbar from "../components/common/Navbar";
 import Footer from "../components/common/Footer";
-import { getUserItemBySlug } from "../api/item.api";
+import { getUserItemBySlug, recordItemView } from "../api/item.api"; 
 
 const ShopItemDetail = () => {
-  const { id: slug } = useParams(); // 🔑 slug
+  const { slug } = useParams(); 
   const navigate = useNavigate();
   const { addToCart } = useCart();
 
@@ -17,12 +16,28 @@ const ShopItemDetail = () => {
   const [loading, setLoading] = useState(true);
   const [added, setAdded] = useState(false);
 
+  const hasRecordedView = useRef(false);
+
   useEffect(() => {
     const fetchItem = async () => {
       setLoading(true);
       try {
         const res = await getUserItemBySlug(slug);
         setItem(res.data);
+
+        // Unique key for this item
+        const storageKey = `viewed_item_${slug}`;
+        
+        if (!localStorage.getItem(storageKey) && !hasRecordedView.current) {
+          hasRecordedView.current = true; 
+      
+          recordItemView(slug)
+            .then(() => {
+              localStorage.setItem(storageKey, "true");
+            })
+            .catch((err) => console.error("Silent item view failed", err));
+        }
+
       } catch (err) {
         console.error("SHOP ITEM FETCH ERROR", err);
         setItem(null);
@@ -92,10 +107,16 @@ const ShopItemDetail = () => {
               {item.name}
             </h1>
 
-            {/* ✅ FULL DESCRIPTION */}
+            {/* FULL DESCRIPTION */}
             <p className="text-rabuste-muted text-lg leading-relaxed mb-8 font-light">
               {item.description}
             </p>
+            
+            {item.tags?.includes("bestseller") && (
+               <span className="inline-block bg-yellow-500 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-6">
+                 Bestseller
+               </span>
+            )}
 
             <div className="flex items-center gap-8 border-t border-rabuste-text/10 pt-8 mt-8">
               <span className="text-3xl font-serif font-bold text-rabuste-gold">

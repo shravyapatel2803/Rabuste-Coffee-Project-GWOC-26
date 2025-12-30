@@ -1,73 +1,35 @@
 import express from "express";
 import upload from "../middlewares/upload.js";
-
 import {
-  /* ============================
-     ADMIN CONTROLLERS
-  ============================ */
   addArt,
   getAdminArts,
-  getAdminArtById,
   updateAdminArt,
   deleteAdminArt,
-  getAdminArtStyles,
-  getAdminArtMoods,
-  getAdminDisplayLocations,
-
-  /* ============================
-     PUBLIC CONTROLLERS
-  ============================ */
+  getArtOptions,
   getPublicArts,
   getPublicArtBySlug,
-  getPublicArtStyles,
-  getPublicArtMoods,
+  incrementArtView
 } from "../controllers/art.controller.js";
+
+import { getArtMoods } from "../controllers/item.controller.js"; 
 
 const router = express.Router();
 
-/* =========================================================
-   ADMIN SIDE ROUTES
-   Base Path: /api/admin/art
-========================================================= */
+// User Side
+router.get("/arts", getPublicArts);         
+router.get("/arts/:slug", getPublicArtBySlug);  
 
-/* -------- Metadata (Admin only) -------- */
-router.get("/admin/art/meta/styles", getAdminArtStyles);
-router.get("/admin/art/meta/moods", getAdminArtMoods);
-router.get(
-  "/admin/art/meta/display-locations",
-  getAdminDisplayLocations
-);
+router.patch("/arts/:slug/view", incrementArtView);
 
-/* -------- List & Create -------- */
-router.get("/admin/art", getAdminArts);
-router.post(
-  "/admin/art",
-  upload.single("image"),
-  addArt
-);
+// admin side
+// Metadata 
+router.get("/admin/arts/moods", getArtMoods);
+router.get("/admin/arts/options", getArtOptions);
 
-/* -------- Single Art (by ID) -------- */
-router.get("/admin/art/:id", getAdminArtById);
-router.put(
-  "/admin/art/:id",
-  upload.single("image"),
-  updateAdminArt
-);
-router.delete("/admin/art/:id", deleteAdminArt);
-
-/* =========================================================
-   PUBLIC / USER SIDE ROUTES
-   Base Path: /api/art
-========================================================= */
-
-/* -------- Public Metadata (SAFE) -------- */
-router.get("/art/meta/styles", getPublicArtStyles);
-router.get("/art/meta/moods", getPublicArtMoods);
-
-/* -------- Public Gallery -------- */
-router.get("/art", getPublicArts);
-
-/* -------- Public Detail Page (slug based) -------- */
-router.get("/art/:slug", getPublicArtBySlug);
+// CRUD
+router.get("/admin/arts", getAdminArts);
+router.post("/admin/arts", upload.single("image"), addArt);
+router.put("/admin/arts/:id", upload.single("image"), updateAdminArt);
+router.delete("/admin/arts/:id", deleteAdminArt);
 
 export default router;

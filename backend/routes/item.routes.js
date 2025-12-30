@@ -11,6 +11,7 @@ import {
   // USER ITEMS
   getPublicItems,
   getPublicItemBySlug,
+  incrementItemView,
 
   // METADATA
   getItemCategories,
@@ -44,5 +45,7 @@ router.get("/items/types", getUserItemTypes);
 
 router.get("/items", getPublicItems);
 router.get("/items/:slug", getPublicItemBySlug);
+
+router.patch("/items/:slug/view", incrementItemView);
 
 export default router;

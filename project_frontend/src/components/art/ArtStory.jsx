@@ -1,12 +1,15 @@
+import React from "react";
+
 const ArtStory = ({ story }) => {
   if (!story) return null;
 
   return (
-    <div>
-      <h3 className="font-serif text-2xl mb-3">
+    <div className="space-y-4">
+      <h3 className="font-serif text-3xl font-bold text-rabuste-text dark:text-white">
         Story Behind the Art
       </h3>
-      <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+      
+      <p className="text-lg leading-relaxed text-rabuste-muted dark:text-stone-300 font-light whitespace-pre-line">
         {story}
       </p>
     </div>

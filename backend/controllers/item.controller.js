@@ -8,27 +8,32 @@ import {
   getItemBySlug,
   fetchItemCategoriesService,
   fetchItemTypesService,
+  fetchArtMoodsService,
+  incrementItemViewService
 } from "../services/item.service.js";
 
 import cloudinary from "../config/cloudinary.js";
 
-/* 
-   ADMIN CONTROLLERS
+/* ADMIN CONTROLLERS
 */
 
 // POST /api/admin/items
 export const addItem = async (req, res) => {
   try {
+    if (!req.file) {
+      console.error("ADD ITEM ERROR: No file received from Multer");
+      return res.status(400).json({ message: "Image file is required" });
+    }
+
     const item = await createItem({
       body: req.body,
       file: req.file,
-      cloudinary,
+      cloudinary: cloudinary 
     });
 
     res.status(201).json(item);
   } catch (err) {
     console.error("ADD ITEM ERROR:", err);
-    console.error(err.stack);
     res.status(500).json({ message: err.message || "Failed to add item" });
   }
 };
@@ -81,13 +86,12 @@ export const updateAdminItem = async (req, res) => {
       id: req.params.id,
       body: req.body,
       file: req.file || null, 
-      cloudinary,
+      cloudinary: cloudinary 
     });
 
     res.json(item);
   } catch (err) {
     console.error("UPDATE ITEM ERROR:", err);
-    console.error(err.stack);
     res.status(500).json({ message: err.message || "Failed to update item" });
   }
 };
@@ -97,7 +101,7 @@ export const deleteAdminItem = async (req, res) => {
   try {
     await deleteItem({
       id: req.params.id,
-      cloudinary,
+      cloudinary: cloudinary 
     });
 
     res.json({ success: true });
@@ -128,9 +132,19 @@ export const getItemTypes = async (req, res) => {
   }
 };
 
+// GET /api/admin/art/moods
+export const getArtMoods = async (req, res) => {
+  try {
+    const moods = await fetchArtMoodsService();
+    res.json({ data: moods });
+  } catch (err) {
+    console.error("GET ART MOODS ERROR:", err);
+    res.status(500).json({ message: "Failed to fetch art moods" });
+  }
+};
 
-/* 
-   USER CONTROLLERS
+
+/* USER CONTROLLERS
 */
 
 // GET /api/items  (USER - menu + shop both)
@@ -193,5 +207,24 @@ export const getUserItemTypes = async (req, res) => {
     res.json({ data });
   } catch (e) {
     res.status(500).json({ message: "Failed to load types" });
+  }
+};
+
+//  PATCH /api/items/:slug/view
+export const incrementItemView = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    
+    if (!slug) return res.status(400).json({ message: "Identifier is required" });
+
+    const newViewCount = await incrementItemViewService(slug);
+
+    res.json({ success: true, views: newViewCount });
+  } catch (err) {
+    if (err.message === "NOT_FOUND") {
+      return res.status(404).json({ message: "Item not found" });
+    }
+    console.error("ITEM VIEW ERROR:", err);
+    res.status(500).json({ message: "Failed to increment item view" });
   }
 };

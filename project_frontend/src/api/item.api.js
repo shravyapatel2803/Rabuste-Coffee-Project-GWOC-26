@@ -8,6 +8,10 @@ export const getUserItemBySlug = (slug) => {
   return API.get(`/items/${slug}`);
 };
 
+export const recordItemView = (slug) => {
+  return API.patch(`/items/${slug}/view`);
+};
+
 export const getUserCategories = () =>
   API.get("/items/categories");
 

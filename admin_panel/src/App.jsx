@@ -6,7 +6,7 @@ import Sidebar from './components/Sidebar';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import MenuPage from './pages/Menu'; // Renamed to avoid conflict with MenuIcon
-import ArtListPage from './pages/ArtListPage';
+import Arts from './pages/Arts';
 import Workshops from './pages/Workshops';
 import Franchise from './pages/Franchise';
 
@@ -50,7 +50,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/menu" element={<ProtectedRoute><MenuPage /></ProtectedRoute>} />
-          <Route path="/ArtListPage" element={<ProtectedRoute><ArtListPage /></ProtectedRoute>} />
+          <Route path="/arts" element={<ProtectedRoute><Arts /></ProtectedRoute>} />
           <Route path="/workshops" element={<ProtectedRoute><Workshops /></ProtectedRoute>} />
           <Route path="/franchise" element={<ProtectedRoute><Franchise /></ProtectedRoute>} />
         </Routes>

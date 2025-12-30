@@ -1,293 +1,244 @@
 import mongoose from "mongoose";
 import Art from "../models/Art.model.js";
-import cloudinary from "../config/cloudinary.js";
-import slugify from "slugify";
-import { removeUndefined } from "../utils/removeUndefined.js";
 import {
-  normalizeIdentifier,
-  normalizeIdentifierArray,
   normalizeFreeText,
-  normalizeOptionalString,
+  normalizeIdentifierArray,
 } from "../utils/normalize.js";
 
-// helpers
-const parseBoolean = (value) => {
-  if (value === undefined) return undefined;
-  return value === "true";
-};
-
-const parseNullableNumber = (value) => {
-  if (value === undefined || value === null || value === "null") return null;
-  return Number(value);
-};
-
-/* ============================
-   ADMIN SERVICES
-============================ */
-
-// ADD ART
-export const addArtService = async (body, file) => {
-  const artData = {
-    title: normalizeFreeText(body.title),
-    slug: slugify(body.title || "", { lower: true, strict: true }),
-    description: normalizeFreeText(body.description),
-    storyBehindArt: normalizeFreeText(body.storyBehindArt),
-
-    artistName: normalizeFreeText(body.artistName),
-    artistBio: normalizeFreeText(body.artistBio),
-    artistInstagram: normalizeOptionalString(body.artistInstagram),
-    artistWebsite: normalizeOptionalString(body.artistWebsite),
-
-    medium: normalizeIdentifier(body.medium),
-    artStyle: normalizeIdentifier(body.artStyle),
-    artMood: normalizeIdentifierArray(
-      body.artMood ? body.artMood.split(",") : []
-    ),
-
-    dimensions:
-      body.width !== undefined || body.height !== undefined
-        ? {
-            width: parseNullableNumber(body.width),
-            height: parseNullableNumber(body.height),
-          }
-        : undefined,
-
-    framed: body.framed === "true",
-    price: parseNullableNumber(body.price),
-    availabilityStatus: body.availabilityStatus || "not-for-sale",
-
-    displayLocation: normalizeIdentifier(body.displayLocation),
-    isCurrentlyDisplayed: parseBoolean(body.isCurrentlyDisplayed),
-    isFeatured: parseBoolean(body.isFeatured),
-    visibility:
-      body.visibility === "public" || body.visibility === "hidden"
-        ? body.visibility
-        : undefined,
+// Helper: Parse JSON fields safely
+const parseJSON = (v) => {
+    try {
+      return typeof v === "string" ? JSON.parse(v) : v;
+    } catch {
+      return [];
+    }
   };
-
-  if (file) {
-    artData.image = {
-      url: file.path,
-      publicId: file.filename,
-      alt: body.title,
-    };
-  }
-
-  return await new Art(artData).save();
-};
-
-// GET ADMIN ARTS
-export const getAdminArtsService = async (queryParams) => {
-  const {
-    search,
-    artStyle,
-    artMood,
-    availabilityStatus,
-    displayLocation,
-    visibility,
-    isFeatured,
-    sort = "latest",
-    cursor,
-    limit = 10,
-    noLimit = "false",
-  } = queryParams;
-
-  const filter = {};
-
-  if (search) {
-    filter.$or = [
-      { title: { $regex: search, $options: "i" } },
-      { description: { $regex: search, $options: "i" } },
-    ];
-  }
-
-  if (artStyle) filter.artStyle = normalizeIdentifier(artStyle);
-  if (artMood) filter.artMood = normalizeIdentifier(artMood);
-  if (displayLocation)
-    filter.displayLocation = normalizeIdentifier(displayLocation);
-  if (visibility) filter.visibility = normalizeIdentifier(visibility);
-  if (availabilityStatus)
-    filter.availabilityStatus = availabilityStatus;
-  if (isFeatured !== undefined)
-    filter.isFeatured = parseBoolean(isFeatured);
-
-  let sortQuery = { createdAt: -1 };
-  if (sort === "oldest") sortQuery = { createdAt: 1 };
-
-  let query = Art.find(filter).sort(sortQuery);
-
-  if (noLimit !== "true") {
-    if (cursor) query = query.where("_id").lt(cursor);
-    query = query.limit(Number(limit) + 1);
-  }
-
-  const results = await query;
-
-  if (noLimit === "true") {
-    return {
-      arts: results,
-      total: results.length,
-      hasMore: false,
-      nextCursor: null,
-    };
-  }
-
-  let hasMore = false;
-  let nextCursor = null;
-
-  if (results.length > limit) {
-    hasMore = true;
-    nextCursor = results.pop()._id;
-  }
-
-  return { arts: results, hasMore, nextCursor };
-};
-
-// UPDATE ART
-export const updateAdminArtService = async (id, body, file) => {
-  const art = await Art.findById(id);
-  if (!art) throw new Error("NOT_FOUND");
-
-  const updateData = removeUndefined({
-    title: normalizeFreeText(body.title),
-    slug: body.title
-      ? slugify(body.title, { lower: true, strict: true })
-      : undefined,
-
-    description: normalizeFreeText(body.description),
-    storyBehindArt: normalizeFreeText(body.storyBehindArt),
-
-    artistName: normalizeFreeText(body.artistName),
-    artistBio: normalizeFreeText(body.artistBio),
-    artistInstagram: normalizeOptionalString(body.artistInstagram),
-    artistWebsite: normalizeOptionalString(body.artistWebsite),
-
-    medium: normalizeIdentifier(body.medium),
-    artStyle: normalizeIdentifier(body.artStyle),
-    artMood: body.artMood
-      ? normalizeIdentifierArray(body.artMood.split(","))
-      : undefined,
-
-    dimensions:
-      body.width !== undefined || body.height !== undefined
-        ? {
-            width: parseNullableNumber(body.width),
-            height: parseNullableNumber(body.height),
-          }
-        : undefined,
-
-    framed: body.framed === "true",
-    price: parseNullableNumber(body.price),
-    availabilityStatus: body.availabilityStatus,
-
-    displayLocation: normalizeIdentifier(body.displayLocation),
-    isCurrentlyDisplayed: parseBoolean(body.isCurrentlyDisplayed),
-    isFeatured: parseBoolean(body.isFeatured),
-    visibility:
-      body.visibility === "public" || body.visibility === "hidden"
-        ? body.visibility
-        : undefined,
-  });
-
-  if (file) {
-    if (art.image?.publicId) {
+  
+  // Helper: Build Payload
+  const buildArtPayload = ({ body }) => {
+    const payload = {};
+  
+    if (body.title) payload.title = normalizeFreeText(body.title);
+    if (body.description) payload.description = normalizeFreeText(body.description);
+    if (body.story) payload.storyBehindArt = normalizeFreeText(body.story);
+  
+    if (body.artistName) payload.artistName = normalizeFreeText(body.artistName);
+    if (body.artistBio) payload.artistBio = normalizeFreeText(body.artistBio);
+  
+    if (body.medium) payload.medium = body.medium;
+    if (body.style) payload.artStyle = body.style;
+    
+    if (body.moods) {
+      payload.artMood = normalizeIdentifierArray(parseJSON(body.moods));
+    }
+  
+    if (body.isFramed !== undefined) payload.framed = body.isFramed === "true" || body.isFramed === true;
+    if (body.width) payload.dimensions = { ...payload.dimensions, width: Number(body.width) };
+    if (body.height) payload.dimensions = { ...payload.dimensions, height: Number(body.height) };
+  
+    if (body.status) payload.availabilityStatus = body.status;
+    
+    if (body.price) {
+      payload.price = body.status === "not-for-sale" ? null : Number(body.price);
+    }
+  
+    if (body.location) payload.displayLocation = normalizeFreeText(body.location);
+    if (body.isDisplayed !== undefined) payload.isCurrentlyDisplayed = body.isDisplayed === "true" || body.isDisplayed === true;
+    if (body.isFeatured !== undefined) payload.isFeatured = body.isFeatured === "true" || body.isFeatured === true;
+    if (body.visibility) payload.visibility = body.visibility;
+  
+    if (body.pairedCoffeeId) {
+      payload.bestPairedCoffee = body.pairedCoffeeId === "" ? null : body.pairedCoffeeId;
+    }
+  
+    return payload;
+  };
+  
+  
+  export const createArt = async ({ body, file, cloudinary }) => {
+    const payload = buildArtPayload({ body });
+  
+    if (file) {
+      payload.image = {
+        url: file.path,       
+        publicId: file.filename, 
+        alt: body.imageAlt || payload.title,
+      };
+    } else {
+      throw new Error("IMAGE_REQUIRED"); 
+    }
+  
+    return await Art.create(payload);
+  };
+  
+  export const updateArt = async ({ id, body, file, cloudinary }) => {
+    const art = await Art.findById(id);
+    if (!art) throw new Error("ART_NOT_FOUND");
+  
+    const payload = buildArtPayload({ body });
+  
+    if (file) {
+      if (art.image?.publicId && cloudinary) {
+        await cloudinary.uploader.destroy(art.image.publicId);
+      }
+      payload.image = {
+        url: file.path,
+        publicId: file.filename,
+        alt: body.imageAlt || art.title,
+      };
+    }
+  
+    Object.assign(art, payload);
+    return await art.save();
+  };
+  
+  export const deleteArt = async ({ id, cloudinary }) => {
+    const art = await Art.findById(id);
+    if (!art) throw new Error("ART_NOT_FOUND");
+  
+    if (art.image?.publicId && cloudinary) {
       await cloudinary.uploader.destroy(art.image.publicId);
     }
+  
+    await art.deleteOne();
+  };
 
-    updateData.image = {
-      url: file.path,
-      publicId: file.filename,
-      alt: body.title,
+export const listArts = async ({ query = {}, context }) => {
+  const filter = {};
+
+  if (query.search) {
+    const regex = new RegExp(query.search, "i");
+    filter.$or = [{ title: regex }, { artistName: regex }];
+  }
+  
+  if (query.medium) filter.medium = query.medium;
+  if (query.style) filter.artStyle = query.style;
+  if (query.mood) filter.artMood = query.mood; 
+  
+  // Admin vs User Filters
+  if (context === "user") {
+    filter.visibility = "public";
+    if (query.status === "available") {
+      filter.availabilityStatus = "available";
+    }
+  } else {
+    // Admin filters
+    if (query.location) filter.displayLocation = new RegExp(query.location, "i");
+    if (query.status) filter.availabilityStatus = query.status;
+    if (query.isDisplayed) filter.isCurrentlyDisplayed = query.isDisplayed === "true";
+  }
+
+  if (context === "user") {
+    const limit = Number(query.limit || 12);
+    const cursor = query.cursor || null;
+
+    if (!cursor) {
+      const arts = await Art.aggregate([
+        { $match: filter },
+        { $sample: { size: limit } } // Randomize
+      ]);
+
+      // Populate manually since aggregate returns plain objects
+      await Art.populate(arts, { path: "bestPairedCoffee", select: "name slug image" });
+
+      return {
+        data: arts,
+        hasMore: true,
+        nextCursor: arts.at(-1)?._id || null, 
+      };
+    }
+
+    const arts = await Art.find({
+      ...filter,
+      _id: { $lt: cursor }, 
+    })
+      .sort({ _id: -1 }) 
+      .limit(limit + 1)
+      .populate("bestPairedCoffee", "name slug image")
+      .lean();
+
+    const hasMore = arts.length > limit;
+    if (hasMore) arts.pop(); 
+
+    return {
+      data: arts,
+      hasMore,
+      nextCursor: arts.at(-1)?._id || null,
     };
   }
 
-  return await Art.findByIdAndUpdate(
-    id,
-    { $set: updateData },
-    { new: true, runValidators: true }
-  );
+  const arts = await Art.find(filter)
+    .sort({ createdAt: -1 })
+    .populate("bestPairedCoffee", "name")
+    .lean();
+    
+  return { data: arts };
 };
 
-// DELETE ART
-export const deleteAdminArtService = async (id) => {
-  const art = await Art.findById(id);
-  if (!art) throw new Error("NOT_FOUND");
-
-  if (art.image?.publicId) {
-    await cloudinary.uploader.destroy(art.image.publicId);
-  }
-
-  await Art.findByIdAndDelete(id);
-};
-
-/* ============================
-   METADATA SERVICES
-============================ */
-
-export const fetchMetadataService = async (field, filter = {}) => {
-  const values = await Art.distinct(field, filter);
-
-  return values
-    .filter((v) => typeof v === "string" && v.trim().length > 0)
-    .map((v) => v.toLowerCase())
-    .sort();
-};
-
-/* ============================
-   PUBLIC SERVICES
-============================ */
-
-export const getPublicArtsService = async (query) => {
-  const {
-    mood,
-    style,
-    availabilityStatus,
-    sort = "latest",
-    cursor,
-    limit = 9,
-  } = query;
-
-  const filter = {
-    visibility: "public",
-    isCurrentlyDisplayed: true,
+export const getArtById = async (id) => {
+    const art = await Art.findById(id);
+    if (!art) throw new Error("ART_NOT_FOUND");
+    return art;
   };
+  
+export const getArtBySlug = async (identifier) => {
+  let query = { visibility: "public" };
 
-  if (style) filter.artStyle = normalizeIdentifier(style);
-  if (mood) filter.artMood = normalizeIdentifier(mood);
-  if (availabilityStatus)
-    filter.availabilityStatus = availabilityStatus;
-
-  let sortQuery = { createdAt: -1 };
-  if (sort === "oldest") sortQuery = { createdAt: 1 };
-
-  let queryBuilder = Art.find(filter).sort(sortQuery);
-
-  if (cursor) queryBuilder = queryBuilder.where("_id").lt(cursor);
-  queryBuilder = queryBuilder.limit(Number(limit) + 1);
-
-  const results = await queryBuilder;
-
-  let hasMore = false;
-  let nextCursor = null;
-
-  if (results.length > limit) {
-    hasMore = true;
-    nextCursor = results.pop()._id;
+  if (mongoose.Types.ObjectId.isValid(identifier)) {
+    query._id = identifier;
+  } else {
+    query.slug = identifier;
   }
 
-  return { arts: results, hasMore, nextCursor };
+  const art = await Art.findOne(query).populate("bestPairedCoffee");
+
+  if (!art) throw new Error("ART_NOT_FOUND");
+  return art;
+};
+  
+  // Metadata Service
+export const fetchArtOptionsService = async () => {
+    try {
+      const [mediums, styles, locations, moods] = await Promise.all([
+        Art.distinct("medium"),
+        Art.distinct("artStyle"),
+        Art.distinct("displayLocation"),
+        Art.distinct("artMood")
+      ]);
+  
+      const cleanAndSort = (arr) => 
+        arr.filter((item) => item && typeof item === 'string' && item.trim() !== "").sort();
+  
+      return {
+        mediums: cleanAndSort(mediums),
+        styles: cleanAndSort(styles),
+        locations: cleanAndSort(locations),
+        moods: cleanAndSort(moods)
+      };
+    } catch (error) {
+      console.error("Service Error fetching options:", error);
+      throw error;
+    }
 };
 
-export const getPublicArtBySlugService = async (slug) => {
-  const art = await Art.findOne({
-    slug,
-    visibility: "public",
-  }).populate("bestPairedCoffee");
 
-  if (!art) throw new Error("NOT_FOUND");
+// view count increament
+export const incrementArtViewService = async (identifier) => {
+  let query = { visibility: "public" };
 
-  art.viewCount = (art.viewCount || 0) + 1;
-  await art.save();
+  if (mongoose.Types.ObjectId.isValid(identifier)) {
+    query._id = identifier;
+  } else {
+    query.slug = identifier;
+  }
 
-  return art;
+  const art = await Art.findOneAndUpdate(
+    query,
+    { $inc: { viewCount: 1 } }, 
+    { new: true } 
+  );
+
+  if (!art) throw new Error("ART_NOT_FOUND");
+  
+  return art.viewCount; 
 };
