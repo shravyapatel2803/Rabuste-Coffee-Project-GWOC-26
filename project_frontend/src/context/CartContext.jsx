@@ -18,8 +18,12 @@ export const CartProvider = ({ children }) => {
   // Clear cart
   const clearCart = () => setCart([]);
 
-  // Total price logic
-  const totalPrice = cart.reduce((sum, item) => sum + (item.price?.sellingPrice || 0), 0);
+  // FIXED: Total price logic
+  // We accept item.price directly. We wrap it in Number() just in case it's a string like "250".
+  const totalPrice = cart.reduce((sum, item) => {
+    const price = Number(item.price) || 0;
+    return sum + price;
+  }, 0);
 
   return (
     <CartContext.Provider value={{ cart, addToCart, removeFromCart, clearCart, totalPrice }}>

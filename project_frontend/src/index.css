@@ -71,3 +71,26 @@ html.lenis, html.lenis body {
 .lenis.lenis-scrolling iframe {
   pointer-events: none;
 }
+@layer components {
+  /* ... your existing classes ... */
+
+  /* Helper for form elements background */
+  .bg-surface {
+    background-color: rgb(var(--color-surface));
+  }
+  
+  /* Helper for gold text/accents */
+  .text-gold {
+    color: rgb(var(--color-gold));
+  }
+  
+  /* Helper for orange backgrounds (for the checkbox) */
+  .bg-orange {
+    background-color: rgb(var(--color-orange));
+  }
+  
+  /* Border color for the checkbox when checked */
+  .border-orange {
+    border-color: rgb(var(--color-orange));
+  }
+}
