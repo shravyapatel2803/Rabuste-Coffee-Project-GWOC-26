@@ -44,12 +44,13 @@ const MenuCategoryGroup = ({ group }) => {
               </div>
 
               {/* IMAGE + DESCRIPTION */}
-              <div className="flex gap-4 mt-2">
+              <div className="flex gap-4 mt-2 items-start"> {/* Added items-start for better alignment */}
                 {item.image?.url && (
                   <img
                     src={item.image.url}
                     alt={item.name || "Menu item"}
-                    className="w-13 h-12 object-cover rounded-full"
+                    // CHANGED: w-13 -> w-14 and h-12 -> h-14 to make it a perfect square
+                    className="w-14 h-14 object-cover rounded-full flex-shrink-0 border border-rabuste-text/10"
                   />
                 )}
 

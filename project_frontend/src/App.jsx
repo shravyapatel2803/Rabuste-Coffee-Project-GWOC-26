@@ -4,7 +4,6 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion' 
 import { CartProvider } from './context/CartContext' 
 import ScrollToTop from './components/common/ScrollToTop' 
-import CustomCursor from './components/common/CustomCursor'
 import SmoothScroll from './components/common/SmoothScroll'
 
 // Pages
@@ -62,7 +61,6 @@ function App() {
       <BrowserRouter>
       <SmoothScroll>
         <ScrollToTop /> 
-        <CustomCursor />
         <AnimatedRoutes />
       </SmoothScroll>
       </BrowserRouter>
