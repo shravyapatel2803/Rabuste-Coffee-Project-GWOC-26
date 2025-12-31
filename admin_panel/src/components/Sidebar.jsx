@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, Coffee, Palette, Calendar, Users, LogOut, X } from 'lucide-react';
+import { LayoutDashboard, Coffee, Palette, Calendar, Users, LogOut, X, ClipboardList } from 'lucide-react';
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const { logout } = useAuth();
@@ -8,6 +8,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
   const menuItems = [
     { path: '/', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
+    
+    { path: '/pre-orders', label: 'Pre-Orders', icon: <ClipboardList size={20} /> },
+    
     { path: '/menu', label: 'Menu Items', icon: <Coffee size={20} /> },
     { path: '/arts', label: 'Art Gallery', icon: <Palette size={20} /> },
     { path: '/workshops', label: 'Workshops', icon: <Calendar size={20} /> },

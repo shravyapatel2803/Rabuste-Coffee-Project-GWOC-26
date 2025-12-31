@@ -6,6 +6,7 @@ import connectDB from "./config/db.js";
 import itemRoutes from "./routes/item.routes.js";
 import artRoutes from "./routes/art.Routes.js";
 import workshopRoutes from "./routes/workshopRoutes.js";
+import orderRoutes from "./routes/order.Routes.js";
 
 dotenv.config();
 connectDB();
@@ -38,6 +39,7 @@ app.get("/", (req, res) => {
 
 app.use("/api", itemRoutes);
 app.use("/api", artRoutes);
+app.use("/api/orders", orderRoutes);
 app.use("/api/workshops", workshopRoutes);
 
 const PORT = process.env.PORT || 5001;

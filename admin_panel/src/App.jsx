@@ -2,15 +2,18 @@ import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Menu as MenuIcon } from 'lucide-react';
+
 import Sidebar from './components/Sidebar';
+
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
-import MenuPage from './pages/Menu'; // Renamed to avoid conflict with MenuIcon
+import MenuPage from './pages/Menu'; 
 import Arts from './pages/Arts';
 import Workshops from './pages/Workshops';
 import Franchise from './pages/Franchise';
+import PreOrders from './pages/PreOrders';
+import OrderDetails from './pages/OrderDetails';
 
-// Layout Component to handle Responsive Sidebar
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -36,10 +39,14 @@ const Layout = ({ children }) => {
   );
 };
 
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children, layout = true }) => {
   const { isAdmin, loading } = useAuth();
+  
   if (loading) return null;
-  return isAdmin ? <Layout>{children}</Layout> : <Navigate to="/login" />;
+  
+  if (!isAdmin) return <Navigate to="/login" />;
+
+  return layout ? <Layout>{children}</Layout> : children;
 };
 
 function App() {
@@ -48,11 +55,25 @@ function App() {
       <Router>
         <Routes>
           <Route path="/login" element={<Login />} />
+ 
           <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/pre-orders" element={<ProtectedRoute><PreOrders /></ProtectedRoute>} />
+
+          <Route 
+            path="/orders/:id" 
+            element={
+              <ProtectedRoute layout={false}>
+                <OrderDetails />
+              </ProtectedRoute>
+            } 
+          />
+
+          {/* OTHER PAGES (With Sidebar) */}
           <Route path="/menu" element={<ProtectedRoute><MenuPage /></ProtectedRoute>} />
           <Route path="/arts" element={<ProtectedRoute><Arts /></ProtectedRoute>} />
           <Route path="/workshops" element={<ProtectedRoute><Workshops /></ProtectedRoute>} />
           <Route path="/franchise" element={<ProtectedRoute><Franchise /></ProtectedRoute>} />
+        
         </Routes>
       </Router>
     </AuthProvider>

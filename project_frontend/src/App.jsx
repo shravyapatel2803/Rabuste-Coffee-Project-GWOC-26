@@ -5,6 +5,7 @@ import { AnimatePresence } from 'framer-motion'
 import { CartProvider } from './context/CartContext' 
 import ScrollToTop from './components/common/ScrollToTop' 
 import SmoothScroll from './components/common/SmoothScroll'
+import ActiveOrderFloating from "./components/common/ActiveOrderFloating";
 
 // Pages
 import Home from './pages/Home'
@@ -17,9 +18,12 @@ import ShopItemDetail from './pages/ShopItemDetail'
 import FullFAQ from './pages/FullFAQ'
 import FullFranchise from './pages/FullFranchise'
 import BookTable from './pages/BookTable'
+import Cart from './pages/Cart'
 import Checkout from './pages/Checkout'
 import Workshops from './pages/Workshops' // Added Workshop Import
 import WorkshopRegistration from './pages/WorkshopRegistration' // Added Registration Import
+import OrderSuccess from './pages/OrderSuccess';
+import TrackOrder from "./pages/TrackOrder";
 
 const AnimatedRoutes = () => {
   const location = useLocation();
@@ -38,7 +42,11 @@ const AnimatedRoutes = () => {
         <Route path="/faqs" element={<FullFAQ />} />
         <Route path="/franchise" element={<FullFranchise />} />
         <Route path="/book-table" element={<BookTable />} />
+        <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<Checkout />} />
+        <Route path="/order-success" element={<OrderSuccess />} />
+        <Route path="/track-order" element={<TrackOrder />} />
+        
         {/* New Routes */}
         <Route path="/workshops" element={<Workshops />} />
         <Route path="/workshops/register/:id" element={<WorkshopRegistration />} />
@@ -61,6 +69,7 @@ function App() {
       <BrowserRouter>
       <SmoothScroll>
         <ScrollToTop /> 
+        <ActiveOrderFloating />
         <AnimatedRoutes />
       </SmoothScroll>
       </BrowserRouter>

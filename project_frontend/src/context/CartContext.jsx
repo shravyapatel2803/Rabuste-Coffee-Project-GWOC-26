@@ -1,35 +1,57 @@
-import React, { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from "react";
 
 const CartContext = createContext();
 
+export const useCart = () => useContext(CartContext);
+
 export const CartProvider = ({ children }) => {
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState(() => {
+    const savedCart = localStorage.getItem("rabuste_cart");
+    return savedCart ? JSON.parse(savedCart) : [];
+  });
 
-  // Add to cart
-  const addToCart = (product) => {
-    setCart((prev) => [...prev, product]);
+  useEffect(() => {
+    localStorage.setItem("rabuste_cart", JSON.stringify(cart));
+  }, [cart]);
+
+  const addToCart = (item) => {
+    setCart((prevCart) => {
+      const existingItem = prevCart.find((i) => i._id === item._id);
+
+      if (existingItem) {
+        return prevCart.map((i) =>
+          i._id === item._id ? { ...i, qty: (i.qty || 1) + 1 } : i
+        );
+      } else {
+        return [...prevCart, { ...item, qty: 1 }];
+      }
+    });
   };
 
-  // Remove from cart
-  const removeFromCart = (indexToRemove) => {
-    setCart((prev) => prev.filter((_, index) => index !== indexToRemove));
+  const decreaseQty = (itemId) => {
+    setCart((prevCart) => {
+      return prevCart.map((item) => {
+        if (item._id === itemId) {
+          return { ...item, qty: item.qty > 1 ? item.qty - 1 : 1 }; 
+        }
+        return item;
+      });
+    });
   };
 
-  // Clear cart
+  // Remove Item Completely
+  const removeFromCart = (itemId) => {
+    setCart((prevCart) => prevCart.filter((item) => item._id !== itemId));
+  };
+
   const clearCart = () => setCart([]);
 
-  // FIXED: Total price logic
-  // We accept item.price directly. We wrap it in Number() just in case it's a string like "250".
-  const totalPrice = cart.reduce((sum, item) => {
-    const price = Number(item.price) || 0;
-    return sum + price;
-  }, 0);
+  // Total Price Calculation
+  const totalPrice = cart.reduce((acc, item) => acc + item.price * (item.qty || 1), 0);
 
   return (
-    <CartContext.Provider value={{ cart, addToCart, removeFromCart, clearCart, totalPrice }}>
+    <CartContext.Provider value={{ cart, addToCart, decreaseQty, removeFromCart, clearCart, totalPrice }}>
       {children}
     </CartContext.Provider>
   );
 };
-
-export const useCart = () => useContext(CartContext);

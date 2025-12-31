@@ -48,15 +48,15 @@ const preOrderSchema = new mongoose.Schema(
       }
     ],
 
+    isViewed: {
+      type: Boolean,
+      default: false 
+    },
+
     // pricing
     totalAmount: {
       type: Number,
       required: true
-    },
-
-    currency: {
-      type: String,
-      default: "INR"
     },
 
     // pickup details

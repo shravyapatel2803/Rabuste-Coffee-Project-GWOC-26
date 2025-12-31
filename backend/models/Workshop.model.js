@@ -2,7 +2,6 @@ import mongoose from "mongoose";
 
 const workshopSchema = new mongoose.Schema(
   {
-    // basic info
     slug: {
       type: String,
       required: true,
@@ -26,14 +25,12 @@ const workshopSchema = new mongoose.Schema(
       trim: true
     },
 
-    // classification
     category: {
       type: String,
       required: true
       // coffee | art | community | special
     },
 
-    // schedule
     date: {
       type: Date,
       required: true

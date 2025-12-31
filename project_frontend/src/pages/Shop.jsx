@@ -154,7 +154,7 @@ const Shop = () => {
             className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md z-50"
           >
             <Link
-              to="/checkout"
+              to="/cart"
               className="flex items-center justify-between bg-rabuste-orange p-4 rounded-lg shadow-xl text-white"
             >
               <div>
