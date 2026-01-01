@@ -13,6 +13,7 @@ import Workshops from './pages/Workshops';
 import Franchise from './pages/Franchise';
 import PreOrders from './pages/PreOrders';
 import OrderDetails from './pages/OrderDetails';
+import AIManagement from './pages/AIManagement';
 
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -73,6 +74,7 @@ function App() {
           <Route path="/arts" element={<ProtectedRoute><Arts /></ProtectedRoute>} />
           <Route path="/workshops" element={<ProtectedRoute><Workshops /></ProtectedRoute>} />
           <Route path="/franchise" element={<ProtectedRoute><Franchise /></ProtectedRoute>} />
+          <Route path="/ai-control" element={<AIManagement />} />
         
         </Routes>
       </Router>

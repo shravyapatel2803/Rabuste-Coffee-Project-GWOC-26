@@ -7,6 +7,7 @@ import itemRoutes from "./routes/item.routes.js";
 import artRoutes from "./routes/art.Routes.js";
 import workshopRoutes from "./routes/workshop.Routes.js";
 import orderRoutes from "./routes/order.Routes.js";
+import aiRoutes from "./routes/ai.routes.js";
 
 dotenv.config();
 connectDB();
@@ -41,6 +42,7 @@ app.use("/api", itemRoutes);
 app.use("/api", artRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api", workshopRoutes);
+app.use("/api/ai", aiRoutes);
 
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {

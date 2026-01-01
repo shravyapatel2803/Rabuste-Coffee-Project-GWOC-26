@@ -6,6 +6,7 @@ import { CartProvider } from './context/CartContext'
 import ScrollToTop from './components/common/ScrollToTop' 
 import SmoothScroll from './components/common/SmoothScroll'
 import ActiveOrderFloating from "./components/common/ActiveOrderFloating";
+import AIFloatingButton from "./components/common/AIFloatingButton";
 
 // Pages
 import Home from './pages/Home'
@@ -70,6 +71,7 @@ function App() {
       <SmoothScroll>
         <ScrollToTop /> 
         <ActiveOrderFloating />
+        <AIFloatingButton />
         <AnimatedRoutes />
       </SmoothScroll>
       </BrowserRouter>
