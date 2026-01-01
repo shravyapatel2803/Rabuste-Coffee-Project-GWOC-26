@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import slugPlugin from "../utils/slug.plugin.js";
 
 const workshopSchema = new mongoose.Schema(
   {
@@ -115,6 +116,8 @@ workshopSchema.index({ date: 1 });
 workshopSchema.index({ category: 1 });
 workshopSchema.index({ visibility: 1, isActive: 1 });
 workshopSchema.index({ createdAt: -1 });
+
+workshopSchema.plugin(slugPlugin, { source: "title" });
 
 const Workshop = mongoose.model("Workshop", workshopSchema);
 

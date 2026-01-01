@@ -40,6 +40,12 @@ export const logNotification = async ({ type, referenceId, recipient, data }) =>
         title = `📢 New Order Received: ₹${data.amount}`;
         emailMessage = `Hello Admin,\n\nYou have received a NEW ORDER! 🎉\n\nCustomer Name: ${data.customerName}\nOrder ID: ${referenceId}\nTotal Amount: ₹${data.amount}\nPickup Time: ${data.pickupTime}\n\nPlease check the dashboard to accept/reject.`;
         break;
+      
+      // workshop registration
+      case "workshop_registration":
+        title = `Workshop Ticket Confirmed: ${data.workshopTitle} - Rabuste Coffee`;
+        emailMessage = `Hi ${name},\n\nYou have successfully registered for the workshop: "${data.workshopTitle}".\n\n📅 Date: ${new Date(data.date).toLocaleDateString()}\n⏰ Time: ${data.time}\n🎟 Tickets: ${data.tickets}\n📍 Location: Rabuste HQ, Gandhinagar\n\nYour Registration ID is: ${referenceId}\n\nSee you there! ☕`;
+        break;
     
       default:
         title = "Notification";

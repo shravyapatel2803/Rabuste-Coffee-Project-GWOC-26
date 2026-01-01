@@ -1,69 +1,228 @@
-import { useState, useEffect } from 'react';
-import api from '../api/api';
-import { Calendar, Trash2, Edit2 } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import { Plus, Trash2, Edit2, Users, Calendar, Loader2, List } from "lucide-react";
+
+import WorkshopForm from "../components/workshop/WorkshopForm"; 
+import RegistrationsModal from "../components/workshop/RegistrationsModal";
+import { getAllWorkshops, createWorkshop, deleteWorkshop, updateWorkshop } from "../api/Workshop"; 
 
 const Workshops = () => {
   const [workshops, setWorkshops] = useState([]);
-  const [form, setForm] = useState({ title: '', description: '', date: '', price: 0, active: true });
-  const [editingId, setEditingId] = useState(null);
+  const [loading, setLoading] = useState(true);
+  
+  // Form States
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedWorkshop, setSelectedWorkshop] = useState(null); 
 
-  const fetchWorkshops = async () => { try { const res = await api.get('/workshops'); setWorkshops(res.data); } catch (e) {} };
-  useEffect(() => { fetchWorkshops(); }, []);
+  // Registration Modal States
+  const [viewRegistrationsId, setViewRegistrationsId] = useState(null); 
+  const [viewRegistrationsTitle, setViewRegistrationsTitle] = useState("");
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if(editingId) { await api.put(`/workshops/${editingId}`, form); setEditingId(null); } 
-    else { await api.post('/workshops', form); }
-    setForm({ title: '', description: '', date: '', price: 0, active: true });
+  // Load Data
+  const fetchWorkshops = async () => {
+    setLoading(true);
+    try {
+      const { data } = await getAllWorkshops();
+      setWorkshops(data);
+    } catch (error) {
+      console.error("Failed to fetch workshops", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchWorkshops();
+  }, []);
+
+  // Open Form for Create
+  const handleAddNew = () => {
+    setSelectedWorkshop(null); 
+    setIsFormOpen(true);
   };
 
-  const handleEdit = (ws) => {
-    setForm(ws);
-    setEditingId(ws._id);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  // Open Form for Edit (Prefill)
+  const handleEdit = (workshop) => {
+    setSelectedWorkshop(workshop); 
+    setIsFormOpen(true);
   };
 
-  const toggleStatus = async (ws) => { await api.put(`/workshops/${ws._id}`, { active: !ws.active }); fetchWorkshops(); };
+  // Handle Create AND Update
+  const handleFormSubmit = async (formData) => {
+    setIsSubmitting(true);
+    try {
+      if (selectedWorkshop) {
+        // UPDATE Logic
+        await updateWorkshop(selectedWorkshop._id, formData);
+        alert("Workshop updated successfully!");
+      } else {
+        // CREATE Logic
+        await createWorkshop(formData);
+        alert("Workshop created successfully!");
+      }
+      
+      setIsFormOpen(false);
+      setSelectedWorkshop(null); 
+      fetchWorkshops(); 
+
+    } catch (error) {
+      alert("Operation failed");
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Handle Delete
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this workshop?")) {
+      try {
+        await deleteWorkshop(id);
+        setWorkshops(workshops.filter(w => w._id !== id));
+      } catch {
+        alert("Failed to delete");
+      }
+    }
+  };
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <h1 className="text-3xl font-serif font-bold text-rabuste-text mb-8">Workshops</h1>
+    <div className="p-6 md:p-10 bg-gray-50 min-h-screen font-sans">
       
-      <div className="bg-rabuste-surface border border-rabuste-text/5 rounded-lg p-6 mb-8 shadow-sm">
-        <h3 className="text-lg font-bold text-rabuste-gold uppercase tracking-wider mb-6 flex items-center gap-2">
-          {editingId ? <Edit2 size={20} /> : <Calendar size={20} />} {editingId ? 'Edit Event' : 'Create Event'}
-        </h3>
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <input placeholder="Title" value={form.title} onChange={e => setForm({...form, title: e.target.value})} className="input-field" required />
-          <input type="date" value={form.date} onChange={e => setForm({...form, date: e.target.value})} className="input-field" required />
-          <input type="number" placeholder="Price" value={form.price} onChange={e => setForm({...form, price: e.target.value})} className="input-field" />
-          <textarea placeholder="Description" value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="input-field md:col-span-2 h-24" required />
-          
-          <div className="md:col-span-2 flex gap-4">
-            <button type="submit" className="btn-primary flex-1">{editingId ? 'Update' : 'Create'}</button>
-            {editingId && <button type="button" onClick={() => {setEditingId(null); setForm({ title: '', description: '', date: '', price: 0, active: true });}} className="px-6 py-3 border border-rabuste-text/20 rounded font-bold uppercase tracking-widest text-rabuste-muted hover:bg-rabuste-text/5">Cancel</button>}
-          </div>
-        </form>
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">Workshop Management</h1>
+          <p className="text-gray-500 text-sm mt-1">Manage your coffee classes and events</p>
+        </div>
+        <button 
+          onClick={handleAddNew}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-bold flex items-center gap-2 shadow-lg shadow-blue-500/30 transition-all active:scale-95"
+        >
+          <Plus size={20} /> Add New Workshop
+        </button>
       </div>
 
-      <div className="space-y-4">
-        {workshops.map(ws => (
-          <div key={ws._id} className="bg-rabuste-surface p-5 rounded-lg border border-rabuste-text/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-              <h4 className="font-serif font-bold text-xl text-rabuste-text">{ws.title}</h4>
-              <p className="text-rabuste-muted text-sm mt-1">{ws.date} | {ws.price === 0 ? "Free Entry" : `₹${ws.price}`}</p>
-            </div>
-            <div className="flex gap-3 w-full md:w-auto">
-               <button onClick={() => toggleStatus(ws)} className={`flex-1 md:flex-none px-4 py-2 rounded text-xs font-bold uppercase tracking-wider ${ws.active ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
-                {ws.active ? "Active" : "Cancelled"}
-              </button>
-              <button onClick={() => handleEdit(ws)} className="text-blue-500 bg-blue-500/10 p-2 rounded hover:bg-blue-500/20"><Edit2 size={20} /></button>
-              <button onClick={() => {if(confirm("Delete?")) api.delete(`/workshops/${ws._id}`).then(fetchWorkshops)}} className="text-red-500 bg-red-500/10 p-2 rounded hover:bg-red-500/20"><Trash2 size={20} /></button>
-            </div>
+      {/* Content */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        
+        {loading ? (
+          <div className="p-20 flex justify-center text-gray-500">
+            <Loader2 className="animate-spin mr-2" /> Loading Workshops...
           </div>
-        ))}
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50/50 border-b border-gray-100 text-gray-500 text-xs uppercase tracking-wider">
+                  <th className="p-5 font-bold">Title & Instructor</th>
+                  <th className="p-5 font-bold">Date & Time</th>
+                  <th className="p-5 font-bold">Price</th>
+                  <th className="p-5 font-bold">Participants</th>
+                  <th className="p-5 font-bold text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 text-sm">
+                {workshops.length > 0 ? (
+                  workshops.map((workshop) => (
+                    <tr key={workshop._id} className="hover:bg-gray-50/80 transition-colors group">
+                      
+                      {/* Title */}
+                      <td className="p-5">
+                        <div className="font-bold text-gray-800 text-base">{workshop.title}</div>
+                        <div className="text-gray-500 text-xs mt-0.5 flex items-center gap-1">
+                          by <span className="font-medium text-blue-600">{workshop.instructor}</span>
+                        </div>
+                      </td>
+
+                      {/* Date */}
+                      <td className="p-5">
+                        <div className="flex items-center gap-2 text-gray-700 font-medium">
+                          <Calendar size={14} className="text-gray-400" />
+                          {new Date(workshop.date).toLocaleDateString()}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1 pl-6">
+                          {workshop.startTime}
+                        </div>
+                      </td>
+
+                      {/* Price */}
+                      <td className="p-5 font-bold text-gray-800">
+                        {workshop.isFree ? "FREE" : `₹${workshop.price}`}
+                      </td>
+
+                      {/* Participants */}
+                      <td className="p-5">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                            {workshop.registeredCount || 0} / {workshop.capacity}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Actions Column */}
+                      <td className="p-5 text-right">
+                        <div className="flex justify-end gap-2">
+                          
+                          {/* View Registrations Button */}
+                          <button 
+                            onClick={() => {
+                              setViewRegistrationsId(workshop._id);
+                              setViewRegistrationsTitle(workshop.title);
+                            }}
+                            className="p-2 text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors border border-purple-200"
+                            title="View Registrations"
+                          >
+                            <List size={16} />
+                          </button>
+
+                          <button 
+                            onClick={() => handleEdit(workshop)} 
+                            className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors border border-blue-200"
+                          >
+                            <Edit2 size={16} />
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(workshop._id)}
+                            className="p-2 text-red-500 bg-red-50 hover:bg-red-100 rounded-lg transition-colors border border-red-200"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="5" className="p-10 text-center text-gray-400">
+                      No workshops found. Create one to get started.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
+      
+      {/* View Registrations Modal */}
+      {viewRegistrationsId && (
+        <RegistrationsModal 
+          workshopId={viewRegistrationsId}
+          workshopTitle={viewRegistrationsTitle}
+          onClose={() => setViewRegistrationsId(null)}
+        />
+      )}
+
+      {/* Modal Form */}
+      {isFormOpen && (
+        <WorkshopForm 
+          onClose={() => setIsFormOpen(false)} 
+          onSubmit={handleFormSubmit} 
+          isLoading={isSubmitting}
+          initialData={selectedWorkshop} 
+        />
+      )}
+      
     </div>
   );
 };
