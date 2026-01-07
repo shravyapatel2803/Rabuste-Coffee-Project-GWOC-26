@@ -1,36 +1,30 @@
 import React, { useState, useEffect } from "react";
-import { Save, Plus, Trash2, Edit2, Bot, Sliders, ToggleLeft, ToggleRight, Loader2, RefreshCw, AlertTriangle, ArrowLeft } from "lucide-react";
+import { Save, Plus, Trash2, Edit2, Bot, Sliders, ToggleLeft, ToggleRight, Loader2, AlertTriangle } from "lucide-react";
 import { 
-  getAIConfig, updateAIConfig,getAllQAs, createQA, updateQA, deleteQA 
+  getAIConfig, updateAIConfig, getAllQAs, createQA, updateQA, deleteQA 
 } from "../api/Ai"; 
-import { useNavigate } from "react-router-dom";
 
 const AIManagement = () => {
   const [activeTab, setActiveTab] = useState("config"); 
-  const navigate = useNavigate(); 
   
   return (
-    <div className="p-6 md:p-10 bg-gray-50 min-h-screen font-sans">
+    // Removed outer padding/bg since Layout handles it
+    <div className="max-w-6xl mx-auto">
       
-      <div className="mb-8 flex items-start gap-4">
-        <button 
-          onClick={() => navigate('/')} 
-          className="mt-1 p-2 bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors shadow-sm"
-        >
-          <ArrowLeft size={20} />
-        </button>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">AI & Automation Control</h1>
-          <p className="text-gray-500 text-sm mt-1">Manage Recommendation Logic and Chatbot Training</p>
-        </div>
+      {/* Header aligned with other admin pages */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-serif font-bold text-rabuste-text">AI & Automation Control</h1>
+        <p className="text-rabuste-muted text-sm mt-1">Manage Recommendation Logic and Chatbot Training</p>
       </div>
 
       {/* Tab Switcher */}
-      <div className="flex gap-4 mb-6 border-b border-gray-200">
+      <div className="flex gap-4 mb-6 border-b border-rabuste-text/10">
         <button
           onClick={() => setActiveTab("config")}
           className={`pb-3 px-4 flex items-center gap-2 font-bold text-sm transition-colors ${
-            activeTab === "config" ? "border-b-2 border-orange-600 text-orange-600" : "text-gray-500 hover:text-gray-700"
+            activeTab === "config" 
+              ? "border-b-2 border-rabuste-orange text-rabuste-orange" 
+              : "text-rabuste-muted hover:text-rabuste-text"
           }`}
         >
           <Sliders size={18} /> Logic Configuration
@@ -38,7 +32,9 @@ const AIManagement = () => {
         <button
           onClick={() => setActiveTab("training")}
           className={`pb-3 px-4 flex items-center gap-2 font-bold text-sm transition-colors ${
-            activeTab === "training" ? "border-b-2 border-orange-600 text-orange-600" : "text-gray-500 hover:text-gray-700"
+            activeTab === "training" 
+              ? "border-b-2 border-rabuste-orange text-rabuste-orange" 
+              : "text-rabuste-muted hover:text-rabuste-text"
           }`}
         >
           <Bot size={18} /> Chatbot Training
@@ -50,11 +46,11 @@ const AIManagement = () => {
   );
 };
 
-
 const ConfigPanel = () => {
   const [config, setConfig] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchConfig();
@@ -69,11 +65,13 @@ const ConfigPanel = () => {
       };
       
       setConfig({
-        ...data,
-        config: { ...defaultWeights, ...data.config }
+        isEnabled: data?.isEnabled ?? true,
+        config: { ...defaultWeights, ...(data?.config || {}) }
       });
+      setError(null);
     } catch (error) {
       console.error("Config load failed", error);
+      setError("Failed to load AI Configuration.");
     } finally {
       setLoading(false);
     }
@@ -97,27 +95,31 @@ const ConfigPanel = () => {
   const handleSliderChange = (key, value) => {
     setConfig(prev => ({
       ...prev,
-      config: { ...prev.config, [key]: parseInt(value) }
+      config: { ...prev.config, [key]: parseInt(value) || 0 }
     }));
   };
 
-  // Calculate Total Weight to warn user
-  const totalWeight = config?.config ? Object.values(config.config).reduce((a, b) => a + b, 0) : 0;
+  if (loading) return <div className="p-10 text-center flex justify-center text-rabuste-muted"><Loader2 className="animate-spin mr-2" /> Loading AI Core...</div>;
+  
+  if (error) return <div className="p-10 text-center text-red-500 bg-red-500/5 rounded-lg border border-red-500/10">{error} <button onClick={fetchConfig} className="ml-2 underline font-bold">Retry</button></div>;
 
-  if (loading) return <div className="p-10 text-center flex justify-center text-gray-500"><Loader2 className="animate-spin mr-2" /> Loading AI Core...</div>;
+  if (!config) return null;
+
+  const weightKeys = ['moodWeight', 'timeWeight', 'flavorWeight', 'strengthWeight', 'bitternessWeight', 'caffeineWeight'];
+  const totalWeight = weightKeys.reduce((sum, key) => sum + (config.config[key] || 0), 0);
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 max-w-3xl">
+    <div className="bg-rabuste-surface rounded-xl shadow-sm border border-rabuste-text/5 p-8 max-w-3xl">
       
       {/* Master Toggle */}
-      <div className="flex justify-between items-center mb-8 bg-gray-50 p-4 rounded-lg border border-gray-100">
+      <div className="flex justify-between items-center mb-8 bg-rabuste-bg p-4 rounded-lg border border-rabuste-text/5">
         <div>
-          <h3 className="font-bold text-gray-800">AI Recommendation Engine</h3>
-          <p className="text-xs text-gray-500">Master switch to enable/disable AI features on the website.</p>
+          <h3 className="font-bold text-rabuste-text">AI Recommendation Engine</h3>
+          <p className="text-xs text-rabuste-muted">Master switch to enable/disable AI features on the website.</p>
         </div>
         <button 
           onClick={() => setConfig({ ...config, isEnabled: !config.isEnabled })}
-          className={`transition-colors ${config.isEnabled ? "text-green-600" : "text-gray-400"}`}
+          className={`transition-colors ${config.isEnabled ? "text-green-500" : "text-rabuste-muted"}`}
         >
           {config.isEnabled ? <ToggleRight size={48} /> : <ToggleLeft size={48} />}
         </button>
@@ -125,74 +127,51 @@ const ConfigPanel = () => {
 
       {/* Weight Controls */}
       <div className="space-y-6">
-        <div className="flex justify-between items-end border-b pb-2 mb-4">
-            <h4 className="font-bold text-gray-700">Matching Priorities (Weights)</h4>
-            <span className={`text-xs font-bold px-2 py-1 rounded ${totalWeight === 100 ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>
+        <div className="flex justify-between items-end border-b border-rabuste-text/5 pb-2 mb-4">
+            <h4 className="font-bold text-rabuste-text">Matching Priorities (Weights)</h4>
+            <span className={`text-xs font-bold px-2 py-1 rounded ${totalWeight === 100 ? 'bg-green-500/10 text-green-500' : 'bg-orange-500/10 text-orange-500'}`}>
                 Total: {totalWeight}% {totalWeight !== 100 && "(Should be 100)"}
             </span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-            {/* Mood */}
             <SliderControl 
-                label="Mood Match Priority" 
-                value={config.config.moodWeight} 
-                onChange={(v) => handleSliderChange("moodWeight", v)} 
-                desc="How important is the user's emotional state?"
+                label="Mood Match" value={config.config.moodWeight} 
+                onChange={(v) => handleSliderChange("moodWeight", v)} desc="Emotional state priority."
             />
-            
-            {/* Time */}
             <SliderControl 
-                label="Time of Day Priority" 
-                value={config.config.timeWeight} 
-                onChange={(v) => handleSliderChange("timeWeight", v)} 
-                desc="Importance of Morning vs Evening logic."
+                label="Time of Day" value={config.config.timeWeight} 
+                onChange={(v) => handleSliderChange("timeWeight", v)} desc="Morning vs Evening logic."
             />
-
-            {/* Flavor */}
             <SliderControl 
-                label="Flavor Note Priority" 
-                value={config.config.flavorWeight} 
-                onChange={(v) => handleSliderChange("flavorWeight", v)} 
-                desc="Importance of Nutty, Fruity, etc. matching."
+                label="Flavor Profile" value={config.config.flavorWeight} 
+                onChange={(v) => handleSliderChange("flavorWeight", v)} desc="Nutty vs Fruity matching."
             />
-
-            {/* Strength */}
             <SliderControl 
-                label="Strength Priority" 
-                value={config.config.strengthWeight} 
-                onChange={(v) => handleSliderChange("strengthWeight", v)} 
-                desc="Importance of Low/Med/High Strength preference."
+                label="Strength" value={config.config.strengthWeight} 
+                onChange={(v) => handleSliderChange("strengthWeight", v)} desc="Intensity preference."
             />
-
-            {/* Bitterness */}
             <SliderControl 
-                label="Bitterness Priority" 
-                value={config.config.bitternessWeight} 
-                onChange={(v) => handleSliderChange("bitternessWeight", v)} 
-                desc="Importance of Bitterness tolerance."
+                label="Bitterness" value={config.config.bitternessWeight} 
+                onChange={(v) => handleSliderChange("bitternessWeight", v)} desc="Tolerance for bitter notes."
             />
-
-            {/* Caffeine */}
             <SliderControl 
-                label="Caffeine Priority" 
-                value={config.config.caffeineWeight} 
-                onChange={(v) => handleSliderChange("caffeineWeight", v)} 
-                desc="Importance of Caffeine kick preference."
+                label="Caffeine" value={config.config.caffeineWeight} 
+                onChange={(v) => handleSliderChange("caffeineWeight", v)} desc="Caffeine kick importance."
             />
         </div>
       </div>
 
-      <div className="mt-8 pt-6 border-t border-gray-100 flex justify-between items-center">
+      <div className="mt-8 pt-6 border-t border-rabuste-text/5 flex justify-between items-center">
         {totalWeight !== 100 && (
-            <div className="flex items-center gap-2 text-xs text-orange-600 font-bold bg-orange-50 px-3 py-2 rounded-lg">
-                <AlertTriangle size={16} /> Weights do not sum to 100%. Results might be skewed.
+            <div className="flex items-center gap-2 text-xs text-orange-500 font-bold bg-orange-500/10 px-3 py-2 rounded-lg">
+                <AlertTriangle size={16} /> Weights must sum to 100%
             </div>
         )}
         <button 
             onClick={handleSave}
             disabled={saving}
-            className="ml-auto px-6 py-3 bg-gray-900 text-white rounded-lg font-bold flex items-center gap-2 hover:bg-black transition-colors"
+            className="ml-auto px-6 py-3 bg-rabuste-text text-rabuste-bg rounded-lg font-bold flex items-center gap-2 hover:opacity-90 transition-opacity"
         >
             {saving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
             Update Algorithm
@@ -202,23 +181,21 @@ const ConfigPanel = () => {
   );
 };
 
-// Helper Component for Sliders
 const SliderControl = ({ label, value, onChange, desc }) => (
     <div>
         <div className="flex justify-between mb-1">
-            <label className="text-xs font-bold text-gray-700 uppercase">{label}</label>
-            <span className="text-xs font-mono font-bold text-orange-600">{value}%</span>
+            <label className="text-xs font-bold text-rabuste-text uppercase">{label}</label>
+            <span className="text-xs font-mono font-bold text-rabuste-orange">{value}%</span>
         </div>
         <input 
             type="range" min="0" max="100" step="5"
-            value={value}
+            value={value || 0}
             onChange={(e) => onChange(e.target.value)}
-            className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-orange-600"
+            className="w-full h-1.5 bg-rabuste-bg rounded-lg appearance-none cursor-pointer accent-rabuste-orange"
         />
-        <p className="text-[10px] text-gray-400 mt-1">{desc}</p>
+        <p className="text-[10px] text-rabuste-muted mt-1">{desc}</p>
     </div>
 );
-
 
 const TrainingPanel = () => {
   const [qas, setQAs] = useState([]);
@@ -235,9 +212,10 @@ const TrainingPanel = () => {
     setLoading(true);
     try {
       const { data } = await getAllQAs();
-      setQAs(data);
+      setQAs(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error(error);
+      setQAs([]);
     } finally {
       setLoading(false);
     }
@@ -246,11 +224,9 @@ const TrainingPanel = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (editingId) {
-        await updateQA(editingId, formData);
-      } else {
-        await createQA(formData);
-      }
+      if (editingId) await updateQA(editingId, formData);
+      else await createQA(formData);
+      
       setFormOpen(false);
       setEditingId(null);
       setFormData({ key: "", question: "", answer: "", category: "general" });
@@ -268,47 +244,40 @@ const TrainingPanel = () => {
 
   const handleDelete = async (id) => {
     if (window.confirm("Delete this Q&A pair?")) {
-      try {
-        await deleteQA(id);
-        fetchQAs();
-      } catch  {
-        alert("Failed to delete");
-      }
+      try { await deleteQA(id); fetchQAs(); } catch { alert("Failed to delete"); }
     }
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden max-w-5xl">
+    <div className="bg-rabuste-surface rounded-xl shadow-sm border border-rabuste-text/5 overflow-hidden max-w-5xl">
       
-      {/* Header */}
-      <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+      <div className="p-6 border-b border-rabuste-text/5 flex justify-between items-center bg-rabuste-bg/50">
         <div>
-          <h3 className="font-bold text-gray-800">Chatbot Knowledge Base</h3>
-          <p className="text-xs text-gray-500">Train the AI to answer common questions.</p>
+          <h3 className="font-bold text-rabuste-text">Chatbot Knowledge Base</h3>
+          <p className="text-xs text-rabuste-muted">Train the AI to answer common questions.</p>
         </div>
         <button 
           onClick={() => { setFormOpen(true); setEditingId(null); setFormData({ key: "", question: "", answer: "", category: "general" }); }}
-          className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2 transition-all shadow-sm"
+          className="bg-rabuste-orange hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2 transition-all shadow-sm"
         >
           <Plus size={16} /> Add Q&A
         </button>
       </div>
 
-      {/* Form */}
       {formOpen && (
-        <div className="p-6 border-b border-orange-100 bg-orange-50/50 animate-in slide-in-from-top-2">
+        <div className="p-6 border-b border-rabuste-orange/20 bg-rabuste-orange/5 animate-in slide-in-from-top-2">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="md:col-span-1">
-                <label className="text-xs font-bold text-gray-600 uppercase mb-1 block">Key (ID)</label>
+                <label className="text-xs font-bold text-rabuste-muted uppercase mb-1 block">Key (ID)</label>
                 <input required type="text" placeholder="wifi_pass" value={formData.key} onChange={e => setFormData({...formData, key: e.target.value.replace(/\s+/g, '_').toLowerCase()})} 
-                  className="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none" 
+                  className="w-full p-2 border border-rabuste-text/10 rounded-lg text-sm focus:ring-2 focus:ring-rabuste-orange bg-rabuste-bg text-rabuste-text outline-none" 
                 />
               </div>
               <div className="md:col-span-1">
-                <label className="text-xs font-bold text-gray-600 uppercase mb-1 block">Category</label>
+                <label className="text-xs font-bold text-rabuste-muted uppercase mb-1 block">Category</label>
                 <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} 
-                  className="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none bg-white"
+                  className="w-full p-2 border border-rabuste-text/10 rounded-lg text-sm focus:ring-2 focus:ring-rabuste-orange bg-rabuste-bg text-rabuste-text outline-none"
                 >
                   <option value="general">General</option>
                   <option value="coffee">Coffee</option>
@@ -317,23 +286,23 @@ const TrainingPanel = () => {
                 </select>
               </div>
               <div className="md:col-span-2">
-                <label className="text-xs font-bold text-gray-600 uppercase mb-1 block">User Question</label>
+                <label className="text-xs font-bold text-rabuste-muted uppercase mb-1 block">User Question</label>
                 <input required type="text" placeholder="e.g. What is the wifi password?" value={formData.question} onChange={e => setFormData({...formData, question: e.target.value})} 
-                  className="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none"
+                  className="w-full p-2 border border-rabuste-text/10 rounded-lg text-sm focus:ring-2 focus:ring-rabuste-orange bg-rabuste-bg text-rabuste-text outline-none"
                 />
               </div>
             </div>
             
             <div>
-              <label className="text-xs font-bold text-gray-600 uppercase mb-1 block">AI Answer</label>
+              <label className="text-xs font-bold text-rabuste-muted uppercase mb-1 block">AI Answer</label>
               <textarea required rows="2" placeholder="Bot response..." value={formData.answer} onChange={e => setFormData({...formData, answer: e.target.value})} 
-                className="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none"
+                className="w-full p-2 border border-rabuste-text/10 rounded-lg text-sm focus:ring-2 focus:ring-rabuste-orange bg-rabuste-bg text-rabuste-text outline-none"
               />
             </div>
 
             <div className="flex gap-2 justify-end">
-              <button type="button" onClick={() => setFormOpen(false)} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg font-bold">Cancel</button>
-              <button type="submit" className="bg-gray-900 hover:bg-black text-white px-6 py-2 rounded-lg text-sm font-bold transition-colors">
+              <button type="button" onClick={() => setFormOpen(false)} className="px-4 py-2 text-sm text-rabuste-muted hover:text-rabuste-text font-bold">Cancel</button>
+              <button type="submit" className="bg-rabuste-text hover:bg-black text-rabuste-bg px-6 py-2 rounded-lg text-sm font-bold transition-colors">
                 {editingId ? "Update" : "Save"}
               </button>
             </div>
@@ -341,39 +310,38 @@ const TrainingPanel = () => {
         </div>
       )}
 
-      {/* Table */}
       {loading ? (
-        <div className="p-10 flex justify-center text-gray-500"><Loader2 className="animate-spin mr-2" /> Loading Data...</div>
+        <div className="p-10 flex justify-center text-rabuste-muted"><Loader2 className="animate-spin mr-2" /> Loading Data...</div>
       ) : (
         <div className="overflow-x-auto max-h-[500px]">
           <table className="w-full text-left border-collapse">
-            <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wider border-b border-gray-200 sticky top-0">
+            <thead className="bg-rabuste-bg/50 text-xs text-rabuste-muted uppercase tracking-wider border-b border-rabuste-text/5 sticky top-0">
               <tr>
                 <th className="p-4 font-bold">Question / Key</th>
                 <th className="p-4 font-bold">Answer</th>
                 <th className="p-4 font-bold text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 text-sm">
+            <tbody className="divide-y divide-rabuste-text/5 text-sm">
               {qas.map(qa => (
-                <tr key={qa._id} className="hover:bg-gray-50 transition-colors group">
+                <tr key={qa._id} className="hover:bg-rabuste-bg/50 transition-colors group">
                   <td className="p-4 align-top w-1/3">
-                    <div className="font-bold text-gray-800">{qa.question}</div>
-                    <span className="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded text-gray-500 font-mono mt-1 inline-block">{qa.key}</span>
-                    <span className="ml-2 text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded border border-blue-100 uppercase font-bold">{qa.category}</span>
+                    <div className="font-bold text-rabuste-text">{qa.question}</div>
+                    <span className="text-[10px] bg-rabuste-bg px-1.5 py-0.5 rounded text-rabuste-muted font-mono mt-1 inline-block">{qa.key}</span>
+                    <span className="ml-2 text-[10px] bg-blue-500/10 text-blue-500 px-1.5 py-0.5 rounded border border-blue-500/20 uppercase font-bold">{qa.category}</span>
                   </td>
-                  <td className="p-4 text-gray-600 align-top">
+                  <td className="p-4 text-rabuste-muted align-top">
                     {qa.answer}
                   </td>
                   <td className="p-4 text-right align-top w-24">
                     <div className="flex justify-end gap-2">
-                      <button onClick={() => handleEdit(qa)} className="text-blue-600 p-1.5 hover:bg-blue-50 rounded"><Edit2 size={16}/></button>
-                      <button onClick={() => handleDelete(qa._id)} className="text-red-600 p-1.5 hover:bg-red-50 rounded"><Trash2 size={16}/></button>
+                      <button onClick={() => handleEdit(qa)} className="text-blue-500 p-1.5 hover:bg-blue-500/10 rounded"><Edit2 size={16}/></button>
+                      <button onClick={() => handleDelete(qa._id)} className="text-red-500 p-1.5 hover:bg-red-500/10 rounded"><Trash2 size={16}/></button>
                     </div>
                   </td>
                 </tr>
               ))}
-              {qas.length === 0 && <tr><td colSpan="3" className="p-8 text-center text-gray-400">No data found.</td></tr>}
+              {qas.length === 0 && <tr><td colSpan="3" className="p-8 text-center text-rabuste-muted">No data found.</td></tr>}
             </tbody>
           </table>
         </div>

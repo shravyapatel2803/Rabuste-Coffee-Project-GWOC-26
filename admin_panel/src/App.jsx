@@ -74,7 +74,9 @@ function App() {
           <Route path="/arts" element={<ProtectedRoute><Arts /></ProtectedRoute>} />
           <Route path="/workshops" element={<ProtectedRoute><Workshops /></ProtectedRoute>} />
           <Route path="/franchise" element={<ProtectedRoute><Franchise /></ProtectedRoute>} />
-          <Route path="/ai-control" element={<AIManagement />} />
+          
+          {/* FIXED: Wrapped in ProtectedRoute to show Sidebar */}
+          <Route path="/ai-control" element={<ProtectedRoute><AIManagement /></ProtectedRoute>} />
         
         </Routes>
       </Router>

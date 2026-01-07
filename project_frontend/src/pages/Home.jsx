@@ -51,12 +51,6 @@ const Home = () => {
             </Reveal>
           </section>
 
-          <section id="faqs">
-            <Reveal>
-              <FAQ isPreview={true} />
-            </Reveal>
-          </section>
-
           <Footer />
         </div>
       </main>

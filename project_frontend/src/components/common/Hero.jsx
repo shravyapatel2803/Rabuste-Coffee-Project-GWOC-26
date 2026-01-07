@@ -43,7 +43,7 @@ const Hero = () => {
           <motion.h1 variants={itemVars} className="text-6xl md:text-8xl lg:text-9xl font-serif font-black leading-[0.9] mb-6 text-rabuste-text transition-colors duration-300">
             BOLD <br/>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-rabuste-gold to-rabuste-orange italic">
-              ROBUSTA
+              ROBUSTE
             </span>
           </motion.h1>
 
@@ -63,7 +63,7 @@ const Hero = () => {
       </div>
 
       {/* 3D INTERACTIVE SECTION */}
-      <div className="absolute inset-0 md:static md:w-1/2 h-full z-10 cursor-move"> 
+      <div className="absolute h-full inset-0 md:static md:w-1/2  z-10 cursor-move "> 
          <Canvas camera={{ position: [0, 0, 12], fov: 35 }}>
             
             {/* 2. Controls: Allows dragging/rotating the cup */}
@@ -90,6 +90,7 @@ const Hero = () => {
             </Float>
             
             <ContactShadows 
+              
               position={[0, -3, 0]} 
               opacity={isDark ? 0.6 : 0.5} 
               scale={10} 

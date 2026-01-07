@@ -95,7 +95,7 @@ const Menu = () => {
   }
 
   return (
-    <div className="bg-rabuste-bg text-rabuste-text min-h-screen px-6 py-20">
+    <div className="bg-rabuste-bg text-rabuste-text min-h-screen px-6">
       <div className="max-w-5xl mx-auto">
 
         {/* FILTER COMPONENT */}

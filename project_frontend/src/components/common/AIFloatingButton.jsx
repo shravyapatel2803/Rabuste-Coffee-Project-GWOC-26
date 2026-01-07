@@ -313,7 +313,8 @@ const RecommendationView = () => {
             </div>
             </div>
         )}
-
+        </div>
+        <div className="fixed bottom-24 w-[calc(100%-96px)] md:w-[calc(400px-96px)]">
         <button onClick={handleRecommend} className="w-full py-3 bg-gray-900 text-white rounded-xl font-bold shadow-lg hover:bg-black transition-transform active:scale-95 flex items-center justify-center gap-2">
           <Sparkles size={16} /> Find My Coffee
         </button>

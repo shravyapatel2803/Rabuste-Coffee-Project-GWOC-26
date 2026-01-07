@@ -42,7 +42,7 @@ const CustomDropdown = ({ options, value, onChange, placeholder, prefix = "" }) 
   }, []);
 
   return (
-    <div className="relative min-w-[220px]" ref={dropdownRef}>
+    <div className="relative min-w-[10px]" ref={dropdownRef}>
       <style>{scrollbarStyles}</style>
 
       {/* TRIGGER BUTTON */}
@@ -56,7 +56,7 @@ const CustomDropdown = ({ options, value, onChange, placeholder, prefix = "" }) 
       >
         <div className="flex flex-col items-start text-left">
            <span className="text-[10px] uppercase font-bold text-rabuste-muted mb-0.5 group-hover:text-rabuste-gold transition-colors">
-             {prefix || "Select"}
+             {prefix || ""}
            </span>
            <span className={`font-serif text-sm font-medium truncate ${value ? "text-rabuste-text" : "text-rabuste-text/50"}`}>
              {value ? value : placeholder}
@@ -156,7 +156,7 @@ const MenuFilters = ({ category, setCategory, type, setType, milkBased, setMilkB
   }, []);
 
   return (
-    <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-16 border-b border-rabuste-text/10 pb-8">
+    <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-16 border-b border-rabuste-text/10 pb-8 ">
       
       {/* SECTION TITLE */}
       <div className="flex items-center gap-3">
@@ -170,22 +170,20 @@ const MenuFilters = ({ category, setCategory, type, setType, milkBased, setMilkB
       </div>
 
       {/* CONTROLS */}
-      <div className="flex flex-wrap items-center gap-4">
+      <div className="flex flex-wrap items-center gap-4 md:gap-2">
         
         <CustomDropdown 
           options={categories} 
-          value={category === "all" ? "All Categories" : category} 
+          value={category === "all" ? "" : category} 
           onChange={setCategory} 
-          placeholder="All Categories"
-          prefix="Category"
+          placeholder="All Categories" // Added placeholder
         />
 
         <CustomDropdown 
           options={["", ...types]} 
-          value={type === "" ? "All Types" : type} 
+          value={type === "" ? "" : type} 
           onChange={setType} 
-          placeholder="All Types"
-          prefix="Item Type"
+          placeholder="All Types" // Added placeholder
         />
 
         {/* CHECKBOX */}

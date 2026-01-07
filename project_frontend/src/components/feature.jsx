@@ -21,7 +21,7 @@ const Features = () => {
           </span>
           {/* FIX: text-white -> text-rabuste-text */}
           <h2 className="text-3xl md:text-6xl font-serif font-bold text-rabuste-text mb-6">
-            The <span className="italic text-rabuste-gold">Robusta</span> Standard.
+            The <span className="italic text-rabuste-gold">Robuste</span> Standard.
           </h2>
           <div className="h-[1px] w-24 bg-rabuste-text/20" />
         </motion.div>

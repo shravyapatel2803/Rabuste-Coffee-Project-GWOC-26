@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import Navbar from '../components/common/Navbar';
-import { Plus, Minus, ArrowRight, ShoppingBag } from 'lucide-react'; 
+import { Plus, Minus, ArrowRight, ArrowLeft } from 'lucide-react'; 
 
 const Cart = () => {
   const navigate = useNavigate();
@@ -25,97 +25,120 @@ const Cart = () => {
       <div className="min-h-screen bg-rabuste-bg flex flex-col">
         <Navbar />
         <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-             <p className="text-rabuste-muted">Your Cart is Empty</p>
-             <button onClick={() => navigate('/menu')} className="text-rabuste-orange">Browse Menu</button>
+             <p className="text-rabuste-muted mb-4 text-sm">Your Cart is Empty</p>
+             <button 
+               onClick={() => navigate('/shop')} 
+               className="bg-rabuste-orange text-white font-bold uppercase tracking-wider px-6 py-2 rounded-sm text-xs"
+             >
+               Browse Shop
+             </button>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-rabuste-bg pb-32">
+    <div className="min-h-screen bg-rabuste-bg pb-12">
       <Navbar />
 
-      <div className="pt-24 px-4 max-w-2xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-serif font-bold text-rabuste-text">My Cart</h1>
-          <span className="text-rabuste-muted text-sm">{cart.length} Items</span>
+      <div className="pt-24 px-3 max-w-2xl mx-auto">
+        
+        {/* HEADER */}
+        <div className="mb-4">
+          <button 
+            onClick={() => navigate(-1)} 
+            className="flex items-center gap-1 text-rabuste-muted hover:text-rabuste-orange text-[10px] font-bold uppercase tracking-wider mb-4"
+          >
+            <ArrowLeft size={12} /> Back
+          </button>
+          
+          <div className="flex items-center justify-between">
+            <h1 className="text-lg font-serif font-bold text-rabuste-text">My Cart</h1>
+            <span className="bg-rabuste-orange/10 text-rabuste-orange px-2 py-0.5 rounded text-[10px] font-bold">
+              {cart.length} Items
+            </span>
+          </div>
         </div>
 
-        <div className="bg-rabuste-surface rounded-xl border border-rabuste-text/5 overflow-hidden mb-6">
+        {/* CART ITEMS LIST */}
+        <div className="flex flex-col gap-3 mb-6">
           {cart.map((item) => (
-            <div key={item._id} className="flex items-center gap-4 p-4 border-b border-rabuste-text/5 last:border-0">
+            <div 
+              key={item._id} 
+              className="flex items-start gap-3 p-3 bg-white dark:bg-white/5 border border-rabuste-text/10 rounded-lg shadow-sm"
+            >
               
-              {/* Image */}
-              <div className="w-16 h-16 rounded-lg overflow-hidden bg-black/20 flex-shrink-0">
+              {/* FIXED: Smaller Image (w-12) */}
+              <div className="w-12 h-12 rounded bg-gray-100 flex-shrink-0 border border-rabuste-text/5 overflow-hidden">
                 <img src={item.image?.url} alt={item.name} className="w-full h-full object-cover"/>
               </div>
 
               {/* Details */}
-              <div className="flex-1">
-                <h3 className="font-bold text-rabuste-text text-sm md:text-base">{item.name}</h3>
-                <p className="text-xs text-rabuste-muted mt-1">₹{item.price} / unit</p>
+              <div className="flex-1 min-w-0 flex flex-col justify-between h-full">
+                {/* FIXED: Allow text wrap, small font */}
+                <h3 className="font-bold text-rabuste-text text-xs leading-tight">{item.name}</h3>
+                <p className="text-[10px] text-rabuste-muted mt-1 font-medium">₹{item.price}</p>
               </div>
 
-              <div className="flex flex-col items-end gap-2">
-                <div className="flex items-center bg-rabuste-bg border border-rabuste-orange/30 rounded-lg overflow-hidden shadow-sm h-8">
-                  
+              {/* Controls */}
+              <div className="flex flex-col items-end gap-1">
+                {/* FIXED: Compact Height (h-6) */}
+                <div className="flex items-center bg-rabuste-bg border border-rabuste-text/20 rounded overflow-hidden h-6">
                   <button 
                     onClick={() => handleDecrease(item)}
-                    className="w-8 h-full flex items-center justify-center text-rabuste-orange hover:bg-rabuste-orange/10 transition-colors"
+                    className="w-6 h-full flex items-center justify-center text-rabuste-text hover:bg-rabuste-text/5"
                   >
-                    <Minus size={14} strokeWidth={3} />
+                    <Minus size={10} strokeWidth={3} />
                   </button>
                   
-                  {/* COUNT */}
-                  <span className="w-8 text-center text-sm font-bold text-rabuste-text">
+                  <span className="w-6 text-center text-[10px] font-bold text-rabuste-text bg-rabuste-surface flex items-center justify-center h-full border-x border-rabuste-text/10">
                     {item.qty}
                   </span>
                   
-                  {/* PLUS BUTTON */}
                   <button 
                     onClick={() => addToCart(item)}
-                    className="w-8 h-full flex items-center justify-center text-rabuste-orange hover:bg-rabuste-orange/10 transition-colors"
+                    className="w-6 h-full flex items-center justify-center text-rabuste-text hover:bg-rabuste-text/5"
                   >
-                    <Plus size={14} strokeWidth={3} />
+                    <Plus size={10} strokeWidth={3} />
                   </button>
-
                 </div>
                 
-                {/* Total Price for this item */}
-                <span className="text-sm font-bold text-rabuste-text">
+                <span className="text-xs font-bold text-rabuste-orange">
                   ₹{item.price * item.qty}
                 </span>
               </div>
-
             </div>
           ))}
         </div>
 
-        <div className="bg-rabuste-surface rounded-xl border border-rabuste-text/5 p-5 mb-6">
-           <div className="flex justify-between text-lg font-bold text-rabuste-text">
-              <span>Grand Total</span>
-              <span>₹{finalTotal}</span>
+        {/* SUMMARY */}
+        <div className="bg-white dark:bg-white/5 rounded-lg border border-rabuste-text/10 p-4 mb-6 shadow-sm">
+           <div className="space-y-2 mb-3">
+             <div className="flex justify-between text-xs text-rabuste-text/70">
+                <span>Subtotal</span>
+                <span>₹{totalPrice}</span>
+             </div>
+             <div className="flex justify-between text-xs text-rabuste-text/70">
+                <span>Taxes & Fees</span>
+                <span>₹{tax + handlingFee}</span>
+             </div>
+           </div>
+           
+           <div className="flex justify-between items-end border-t border-rabuste-text/10 pt-3">
+              <span className="text-sm font-bold text-rabuste-text">Total</span>
+              <span className="text-lg font-serif font-bold text-rabuste-gold">₹{finalTotal}</span>
             </div>
         </div>
 
-      </div>
+        {/* CHECKOUT BUTTON */}
+        <button 
+          onClick={() => navigate('/checkout')}
+          className="w-full bg-rabuste-orange text-white py-3 rounded font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 shadow-lg"
+        >
+          Proceed to Checkout <ArrowRight size={14} />
+        </button>
 
-      <div className="fixed bottom-0 left-0 w-full bg-rabuste-surface border-t border-rabuste-text/10 p-4 z-50">
-        <div className="max-w-2xl mx-auto flex items-center justify-between gap-4">
-          <div className="flex flex-col">
-            <span className="text-xs text-rabuste-muted uppercase font-bold">Total to Pay</span>
-            <span className="text-xl font-serif font-bold text-rabuste-text">₹{finalTotal}</span>
-          </div>
-          <button 
-            onClick={() => navigate('/checkout')}
-            className="flex-1 bg-rabuste-orange hover:bg-orange-700 text-white py-3.5 px-6 rounded-lg font-bold uppercase tracking-widest text-sm flex items-center justify-center gap-2"
-          >
-            Proceed to Checkout <ArrowRight size={18} />
-          </button>
-        </div>
       </div>
-
     </div>
   );
 };

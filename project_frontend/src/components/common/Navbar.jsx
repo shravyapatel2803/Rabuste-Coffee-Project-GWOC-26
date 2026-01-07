@@ -1,12 +1,19 @@
+// src/components/common/Navbar.jsx
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link, useLocation } from 'react-router-dom'; // Import useLocation
-import { Coffee, Menu, X, Sun, Moon } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { Coffee, Menu, X, Sun, Moon, ShoppingBag } from 'lucide-react';
+import { useCart } from '../../context/CartContext'; // Import Cart Context
+
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [isDark, setIsDark] = useState(true);
-  const location = useLocation(); // Get current route
+  const location = useLocation();
+  
+  // Get cart data
+  const { cart } = useCart();
+  const cartItemCount = cart.length;
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -38,7 +45,7 @@ const Navbar = () => {
   return (
     <>
       <nav 
-        className={`fixed top-0 w-full z-50 transition-all duration-500 border-b ${
+        className={`fixed top-0 w-full z-[70] transition-all duration-500 border-b ${
           scrolled 
             ? 'bg-rabuste-bg/95 backdrop-blur-md py-3 md:py-4 border-rabuste-text/5' 
             : 'bg-transparent py-4 md:py-6 border-transparent'
@@ -57,7 +64,6 @@ const Navbar = () => {
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => {
-              // Check if this link is active
               const isActive = location.pathname === link.href;
               return (
                 <Link 
@@ -76,19 +82,40 @@ const Navbar = () => {
               {isDark ? <Sun size={20} /> : <Moon size={20} />}
             </button>
 
+            {/* CART ICON (DESKTOP) */}
+            <Link to="/cart" className="relative p-2 text-rabuste-text hover:text-rabuste-orange transition-colors">
+              <ShoppingBag size={20} />
+              {cartItemCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-rabuste-orange text-white text-[10px] font-bold flex items-center justify-center rounded-full">
+                  {cartItemCount}
+                </span>
+              )}
+            </Link>
+
             <Link 
-              to="/book-table"
+              to="/franchise/enquiry"
               className="px-6 py-2 border border-rabuste-text/10 hover:border-rabuste-orange hover:bg-rabuste-orange/10 hover:text-rabuste-orange text-rabuste-text text-xs font-bold tracking-widest uppercase transition-all rounded-sm"
             >
-              Book Table
+              Franchise Enquiry
             </Link>
           </div>
 
-          {/* Mobile Toggle */}
-          <div className="flex items-center gap-4 md:hidden z-50">
+          {/* Mobile Actions (Theme + Cart + Menu) */}
+          <div className="flex items-center gap-2 md:hidden z-50">
             <button onClick={toggleTheme} className="text-rabuste-text p-2">
               {isDark ? <Sun size={20} /> : <Moon size={20} />}
             </button>
+
+            {/* CART ICON (MOBILE) - ADDED HERE */}
+            <Link to="/cart" className="relative text-rabuste-text p-2">
+              <ShoppingBag size={20} />
+              {cartItemCount > 0 && (
+                <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-rabuste-orange text-white text-[9px] font-bold flex items-center justify-center rounded-full">
+                  {cartItemCount}
+                </span>
+              )}
+            </Link>
+
             <button 
               className="text-rabuste-text p-2 hover:bg-rabuste-text/5 rounded-full"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -103,11 +130,11 @@ const Navbar = () => {
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div 
-            initial={{ opacity: 0, x: "100%" }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: "100%" }}
+            initial={{ opacity: 0, x: "100%", backdropFilter: "blur(0px)" }}
+            animate={{ opacity: 1, x: 0, backdropFilter: "blur(12px)" }}
+            exit={{ opacity: 0, x: "100%", backdropFilter: "blur(0px)" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed inset-0 z-40 bg-rabuste-bg flex flex-col items-center justify-center md:hidden"
+            className="fixed inset-0 z-[60] bg-rabuste-bg/90 backdrop-blur-lg flex flex-col items-center justify-center md:hidden"
           >
             <div className="flex flex-col gap-8 items-center w-full px-6">
               {navLinks.map((link) => (
@@ -124,11 +151,11 @@ const Navbar = () => {
               ))}
               
               <Link 
-                to="/book-table"
+                to="/franchise/enquiry"
                 onClick={() => setIsMenuOpen(false)}
                 className="w-full max-w-xs py-4 bg-rabuste-orange text-white font-bold tracking-widest uppercase rounded-sm text-center shadow-lg"
               >
-                Book a Table
+                Franchise Enquiry
               </Link>
             </div>
           </motion.div>
