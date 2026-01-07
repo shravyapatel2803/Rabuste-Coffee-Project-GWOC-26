@@ -1,4 +1,4 @@
-﻿# Rabuste-Coffee-Project-GWOC-26-
+﻿# Rabuste-Coffee-Project-GWOC-26
 
 A full-stack coffee shop management platform featuring a customer frontend, an administrative dashboard, and a robust backend API. This project was developed as part of the Google Winter of Code (GWOC) 2025-26.
 
@@ -51,3 +51,4 @@ The repository is organized into three main directories:
    git clone [https://github.com/shravyapatel2803/rabuste-coffee-project-gwoc-26-.git](https://github.com/shravyapatel2803/rabuste-coffee-project-gwoc-26-.git)
 
    cd rabuste-coffee-project-gwoc-26-
+
