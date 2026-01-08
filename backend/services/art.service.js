@@ -44,7 +44,6 @@ const parseJSON = (v) => {
   
     if (body.location) payload.displayLocation = normalizeFreeText(body.location);
     if (body.isDisplayed !== undefined) payload.isCurrentlyDisplayed = body.isDisplayed === "true" || body.isDisplayed === true;
-    if (body.isFeatured !== undefined) payload.isFeatured = body.isFeatured === "true" || body.isFeatured === true;
     if (body.visibility) payload.visibility = body.visibility;
   
     if (body.pairedCoffeeId) {

@@ -133,11 +133,6 @@ const itemSchema = new mongoose.Schema(
       // bestseller | signature | vegan | iced | hot | trending
     },
 
-    isFeatured: {
-      type: Boolean,
-      default: false
-    },
-
     // analytics
     viewCount: {
       type: Number,

@@ -11,7 +11,10 @@ import Shop from './Shop';
 import Reveal from '../components/Reveal'; // Import existing Reveal
 import PageTransition from '../components/common/PageTransition'; // Import the new transition
 
+
 const Home = () => {
+
+
   return (
     <PageTransition>
       <main className="min-h-screen bg-rabuste-bg text-rabuste-text selection:bg-rabuste-orange selection:text-white">
@@ -22,7 +25,7 @@ const Home = () => {
           {/* Wrap sections in Reveal for scroll animation */}
           <section id="about">
             <Reveal>
-              <Features />
+              <Hero />
             </Reveal>
           </section>
 

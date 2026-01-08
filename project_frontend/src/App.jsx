@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect } from 'react' 
+import React, { useState, useEffect } from 'react' 
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom' 
 import { AnimatePresence } from 'framer-motion' 
 import { CartProvider } from './context/CartContext' 
@@ -26,26 +26,6 @@ import Workshops from './pages/Workshops'
 import WorkshopRegistration from './pages/WorkshopRegistration' 
 import OrderSuccess from './pages/OrderSuccess';
 import TrackOrder from "./pages/TrackOrder";
-
-// --- NEW COMPONENT: Handles Loading on Route Change ---
-const NavigationLoader = ({ setIsLoading }) => {
-  const location = useLocation();
-
-  useEffect(() => {
-    // 1. Trigger Loading
-    setIsLoading(true);
-
-    // 2. Wait and then hide loading (simulating page load)
-    // You can adjust the time (e.g., 2000ms) to be faster or slower
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 2000); 
-
-    return () => clearTimeout(timer);
-  }, [location.pathname, setIsLoading]); // Runs whenever path changes
-
-  return null;
-};
 
 const AnimatedRoutes = () => {
   const location = useLocation();
@@ -76,28 +56,27 @@ const AnimatedRoutes = () => {
 };
 
 function App() {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-  // Initial Setup (Theme, etc.)
   useEffect(() => {
     if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
       document.documentElement.classList.add('dark')
     } else {
       document.documentElement.classList.remove('dark')
     }
-  }, [])
+
+    const timer = setTimeout(() => {
+      setIsInitialLoad(false);
+    }, 2500); 
+
+    return () => clearTimeout(timer);
+  }, []); 
 
   return (
     <CartProvider> 
       <BrowserRouter>
-        {/* NavigationLoader sits here to listen to route changes */}
-        <NavigationLoader setIsLoading={setIsLoading} />
-
-        {/* LOGIC: 
-           If isLoading is true, show Preloader.
-           Otherwise, show the main App.
-        */}
-        {isLoading ? (
+        
+        {isInitialLoad ? (
           <Preloader />
         ) : (
           <SmoothScroll>
@@ -107,6 +86,7 @@ function App() {
             <AnimatedRoutes />
           </SmoothScroll>
         )}
+
       </BrowserRouter>
     </CartProvider>
   )

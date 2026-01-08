@@ -30,7 +30,6 @@ const INITIAL_FORM_STATE = {
   artPairedMood: [], 
   artPairingExplanation: {},
   isSoldOut: false,
-  isFeatured: false,
 };
 
 const AdminItemForm = ({ mode = "add", item: existingItem, onClose, onSuccess }) => {
@@ -453,10 +452,6 @@ Object.entries(finalForm).forEach(([k, v]) => {
                   <label className="flex items-center justify-between cursor-pointer">
                     <span className="text-sm font-medium text-gray-700">Sold Out</span>
                     <input type="checkbox" name="isSoldOut" checked={form.isSoldOut} onChange={handleChange} className="w-5 h-5 accent-red-500" />
-                  </label>
-                  <label className="flex items-center justify-between cursor-pointer">
-                    <span className="text-sm font-medium text-gray-700">Featured</span>
-                    <input type="checkbox" name="isFeatured" checked={form.isFeatured} onChange={handleChange} className="w-5 h-5 accent-orange-500" />
                   </label>
                 </div>
               </div>

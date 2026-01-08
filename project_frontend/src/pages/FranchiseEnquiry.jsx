@@ -12,11 +12,13 @@ import {
   ArrowRight,
   FileText,
   PartyPopper,
-  X // Imported X icon
+  X,
+  Loader2 
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
+import { createFranchiseEnquiry } from '../api/franchise.api';
 
 // --- CONFETTI COMPONENT ---
 const Confetti = () => {
@@ -66,6 +68,7 @@ const FranchiseEnquiry = () => {
   });
 
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); 
 
   // --- EFFECT: Close on 'Escape' Key ---
   useEffect(() => {
@@ -83,19 +86,30 @@ const FranchiseEnquiry = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
     
     const payload = {
       ...formData,
       experienceInBusiness: formData.experienceInBusiness === 'yes'
     };
 
-    console.log("Franchise Enquiry Payload:", payload);
-    setSubmitted(true);
+    try {
+      await createFranchiseEnquiry(payload);
+      setSubmitted(true);
+      setFormData({
+        name: '', email: '', phone: '', city: '', state: '',
+        investmentRange: '10-20 Lakhs', experienceInBusiness: 'no', message: ''
+      });
+    } catch (error) {
+      console.error("Submission Failed", error);
+      alert("Failed to submit enquiry. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  // --- CONFIRMATION SCREEN ---
   if (submitted) {
     return (
       <main className="min-h-screen bg-rabuste-bg text-rabuste-text flex flex-col relative overflow-hidden">
@@ -161,30 +175,7 @@ const FranchiseEnquiry = () => {
 
                 <div className="text-center mb-8">
                   <p className="text-rabuste-muted text-xs uppercase tracking-widest mb-1">Applicant</p>
-                  <h3 className="text-xl text-rabuste-text font-serif">{formData.name}</h3>
-                </div>
-
-                <div className="grid grid-cols-2 gap-6 mb-8 border-b border-dashed border-rabuste-text/10 pb-8">
-                  <div className="text-center">
-                    <div className="flex justify-center mb-2 text-rabuste-gold"><MapPin size={20} /></div>
-                    <p className="text-rabuste-muted text-[10px] uppercase tracking-widest">Location</p>
-                    <p className="text-rabuste-text font-bold text-sm">{formData.city}, {formData.state}</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="flex justify-center mb-2 text-rabuste-gold"><IndianRupee size={20} /></div>
-                    <p className="text-rabuste-muted text-[10px] uppercase tracking-widest">Budget</p>
-                    <p className="text-rabuste-text font-bold text-sm">{formData.investmentRange}</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="flex justify-center mb-2 text-rabuste-gold"><Building size={20} /></div>
-                    <p className="text-rabuste-muted text-[10px] uppercase tracking-widest">Experience</p>
-                    <p className="text-rabuste-text font-bold text-sm">{formData.experienceInBusiness === 'yes' ? 'Experienced' : 'First Time'}</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="flex justify-center mb-2 text-rabuste-gold"><CheckCircle size={20} /></div>
-                    <p className="text-rabuste-muted text-[10px] uppercase tracking-widest">Status</p>
-                    <p className="text-green-500 font-bold text-sm">In Review</p>
-                  </div>
+                  <h3 className="text-xl text-rabuste-text font-serif">{formData.name || "Valued Partner"}</h3>
                 </div>
 
                 <div className="bg-rabuste-bg/50 border border-rabuste-text/5 p-4 rounded-sm mb-8 text-center">
@@ -217,7 +208,7 @@ const FranchiseEnquiry = () => {
     );
   }
 
-  // --- FORM SCREEN (Unchanged) ---
+  // --- FORM SCREEN ---
   return (
     <main className="min-h-screen bg-rabuste-bg text-rabuste-text">
       <Navbar />
@@ -398,8 +389,18 @@ const FranchiseEnquiry = () => {
             </div>
 
             <div className="mt-10 pt-8 border-t border-rabuste-text/10">
-              <button type="submit" className="w-full py-5 bg-gradient-to-r from-rabuste-gold to-yellow-600 text-black font-bold tracking-[0.2em] uppercase hover:to-yellow-500 transition-all rounded-sm shadow-xl shadow-yellow-900/20 transform hover:-translate-y-1">
-                Submit Franchise Enquiry
+              <button 
+                type="submit" 
+                disabled={isSubmitting}
+                className="w-full py-5 bg-gradient-to-r from-rabuste-gold to-yellow-600 text-black font-bold tracking-[0.2em] uppercase hover:to-yellow-500 transition-all rounded-sm shadow-xl shadow-yellow-900/20 transform hover:-translate-y-1 flex justify-center items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="animate-spin" size={20} /> Processing...
+                  </>
+                ) : (
+                  "Submit Franchise Enquiry"
+                )}
               </button>
               <p className="text-center text-[10px] text-rabuste-muted mt-4 uppercase tracking-widest">
                 <FileText size={10} className="inline mr-1"/> By submitting, you agree to our privacy policy

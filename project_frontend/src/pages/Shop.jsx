@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { Loader2, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react"; 
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 
@@ -7,7 +7,7 @@ import { useCart } from "../context/CartContext";
 import { getUserItems } from "../api/item.api";
 import ProductCard from "../components/shop/ProductCard";
 import MenuFilters from "../components/menu/MenuFilters";
-import Preloader from "../components/common/Preloader";
+import Preloader from "../components/common/Preloader"; 
 
 const LIMIT = 12;
 
@@ -15,6 +15,8 @@ const Shop = () => {
   const [products, setProducts] = useState([]);
   const [nextCursor, setNextCursor] = useState(null);
   const [hasMore, setHasMore] = useState(true);
+  
+  // Loading State
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
 
@@ -23,14 +25,13 @@ const Shop = () => {
   const [type, setType] = useState("");
   const [milkBased, setMilkBased] = useState(false);
 
-  // Active state for hover effect
   const [activeIndex, setActiveIndex] = useState(null);
   const itemRefs = useRef([]);
 
   const { cart, totalPrice } = useCart();
 
   const loadInitial = useCallback(async () => {
-    setLoading(true);
+    setLoading(true); // Loader Start
     try {
       const res = await getUserItems({
         showIn: "shop",
@@ -46,7 +47,7 @@ const Shop = () => {
     } catch (e) {
       console.error("SHOP LOAD ERROR", e);
     } finally {
-      setLoading(false);
+      setLoading(false); 
     }
   }, [category, type, milkBased]);
 
@@ -68,7 +69,15 @@ const Shop = () => {
         milkBased: milkBased ? true : undefined,
       });
 
-      setProducts((prev) => [...prev, ...(res.data.items || [])]);
+      const newItems = res.data.items || [];
+
+      setProducts((prev) => {
+        const uniqueNewItems = newItems.filter(
+          (newItem) => !prev.some((existing) => existing._id === newItem._id)
+        );
+        return [...prev, ...uniqueNewItems];
+      });
+
       setNextCursor(res.data.nextCursor);
       setHasMore(res.data.hasMore);
     } catch (e) {
@@ -93,18 +102,15 @@ const Shop = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-rabuste-bg text-rabuste-orange">
-        <Loader2 className="animate-spin" size={40} />
+      <div className="min-h-screen bg-rabuste-bg">
+         <Preloader inline={true} />
       </div>
     );
   }
 
   return (
-    // FIXED: Reduced horizontal padding (px-3) to give grid more space
     <div className="px-3 md:px-6 py-16 bg-rabuste-bg min-h-screen">
       <div className="max-w-7xl mx-auto">
-
-        {/* HEADER */}
         <div className="text-center mb-8 md:mb-12">
           <span className="text-rabuste-orange font-bold tracking-[0.2em] uppercase text-xs block mb-4">
             Takeaway Orders
@@ -114,7 +120,6 @@ const Shop = () => {
           </h1>
         </div>
 
-        {/* FILTER */}
         <MenuFilters
           category={category}
           setCategory={setCategory}
@@ -124,9 +129,6 @@ const Shop = () => {
           setMilkBased={setMilkBased}
         />
 
-        {/* GRID LAYOUT - FIXED */}
-        {/* grid-cols-2 ensures 2 items per row on mobile */}
-        {/* gap-3 is small enough to fit two cards */}
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6 pb-32">
           {products.map((product, index) => (
             <ProductCard 
@@ -139,22 +141,19 @@ const Shop = () => {
           ))}
         </div>
 
-        {/* LOAD MORE LOADER */}
         {loadingMore && (
-          <div className="flex justify-center py-10 text-rabuste-orange">
-            <Preloader className="animate-spin" size={32} />
-          </div>
+           <div className="py-10">
+              <Preloader inline={true} /> 
+           </div>
         )}
       </div>
 
-      {/* FLOATING CART BAR */}
       <AnimatePresence>
         {cart.length > 0 && (
           <motion.div
             initial={{ y: 100 }}
             animate={{ y: 0 }}
             exit={{ y: 100 }}
-            // FIXED: Moved to bottom-left to avoid overlap with floating button and improve visibility
             className="fixed bottom-16 right-4 md:left-6 w-[95%] max-w-md z-[60]"
           >
             <Link

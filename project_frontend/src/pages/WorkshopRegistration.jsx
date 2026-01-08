@@ -6,10 +6,14 @@ import Footer from '../components/common/Footer';
 import { Loader2, Calendar, Clock, MapPin, User, Mail, Phone, Ticket, CheckCircle, ArrowLeft, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
 
+import { useShop } from '../context/ShopContext';
+
 const WorkshopRegistration = () => {
   const { id } = useParams(); 
   const navigate = useNavigate();
   
+  const { workshops } = useShop();
+
   const [workshop, setWorkshop] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -26,17 +30,28 @@ const WorkshopRegistration = () => {
     const fetchWorkshop = async () => {
       if (!id) return; 
 
+      setLoading(true);
+
+      const cachedWorkshop = workshops.find(w => w.slug === id || w._id === id);
+
+      if (cachedWorkshop) {
+        setWorkshop(cachedWorkshop);
+        setLoading(false);
+      }
+
       try {
-        const { data } = await getWorkshopBySlug(id);
-        setWorkshop(data.data || data); 
+        if (!cachedWorkshop) {
+            const { data } = await getWorkshopBySlug(id);
+            setWorkshop(data.data || data); 
+        }
       } catch (error) {
-        console.error("Error:", error);
+        console.error("Error fetching workshop:", error);
       } finally {
         setLoading(false);
       }
     };
     fetchWorkshop();
-  }, [id]);
+  }, [id, workshops]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });

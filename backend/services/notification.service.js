@@ -11,41 +11,52 @@ export const logNotification = async ({ type, referenceId, recipient, data }) =>
 
     switch (type) {
       
-      // order status
       case "order_update":
         const status = data.status;
         title = `Order Update: ${status} - Rabuste Coffee`;
+        if (status === "Confirmed") emailMessage = `Hi ${name},\n\nGood news! Your order #${referenceId.slice(-6).toUpperCase()} has been CONFIRMED.`;
+        else if (status === "Preparing") emailMessage = `Hi ${name},\n\nYour order is now being PREPARED by our chefs. 👨‍🍳`;
+        else if (status === "Ready") emailMessage = `Hi ${name},\n\nYour order is READY for pickup! ☕\nOrder ID: ${referenceId}`;
+        else if (status === "Completed") emailMessage = `Hi ${name},\n\nThank you for visiting Rabuste Coffee! Your order is COMPLETED.`;
+        else if (status === "Cancelled") emailMessage = `Hi ${name},\n\nYour order #${referenceId.slice(-6).toUpperCase()} has been CANCELLED.`;
+        break;
+
+      case "preorder":
+        title = "Order Confirmation - Rabuste Coffee";
+        emailMessage = `Hi ${name},\n\nYour order for ₹${data.amount} has been placed successfully.\nOrder ID: ${referenceId}`;
+        break;
+
+      case "admin_new_order":
+        title = `📢 New Order Received: ₹${data.amount}`;
+        emailMessage = `Hello Admin,\n\nNew Order!\nCustomer: ${data.customerName}\nAmount: ₹${data.amount}`;
+        break;
+      
+      case "workshop_registration":
+        title = `Workshop Ticket Confirmed: ${data.workshopTitle}`;
+        emailMessage = `Hi ${name},\n\nRegistration Confirmed: "${data.workshopTitle}".\nDate: ${new Date(data.date).toLocaleDateString()}\nTickets: ${data.tickets}`;
+        break;
+
+      case "admin_franchise_enquiry":
+        title = `📢 New Franchise Enquiry: ${data.city}`;
+        emailMessage = `Hello Admin,\n\nYou have received a new Franchise Enquiry!\n\nName: ${data.name}\nCity: ${data.city}, ${data.state}\nBudget: ${data.investmentRange}\nPhone: ${data.phone}\nEmail: ${data.email}\n\nMessage:\n"${data.message}"\n\nPlease check the dashboard for more details.`;
+        break;
+
+      case "franchise_status_update":
+        title = `Update on your Franchise Enquiry - Rabuste Coffee`;
         
-        if (status === "Confirmed") {
-          emailMessage = `Hi ${name},\n\nGood news! Your order #${referenceId.slice(-6).toUpperCase()} has been CONFIRMED. We are getting things ready.`;
-        } else if (status === "Preparing") {
-          emailMessage = `Hi ${name},\n\nYour order is now being PREPARED by our chefs. 👨‍🍳`;
-        } else if (status === "Ready") {
-          emailMessage = `Hi ${name},\n\nYour order is READY for pickup! ☕\nPlease collect it from the counter.\n\nOrder ID: ${referenceId}`;
-        } else if (status === "Completed") {
-          emailMessage = `Hi ${name},\n\nThank you for visiting Rabuste Coffee! Your order has been marked as COMPLETED. Hope you enjoyed it!`;
-        } else if (status === "Cancelled") {
-          emailMessage = `Hi ${name},\n\nYour order #${referenceId.slice(-6).toUpperCase()} has been CANCELLED.\nIf you paid online, the refund process will be initiated manually within 24-48 hours.`;
+        if (data.status === 'contacted' || data.status === 'Contacted') {
+            emailMessage = `Hi ${name},\n\nThank you for your interest in Rabuste Franchise.\n\nWe have reviewed your application and our team has marked your profile for the next round of discussion.\n\nOur representative will contact you shortly on your registered phone number.\n\nBest Regards,\nRabuste Franchise Team`;
+        } else if (data.status === 'closed') {
+            emailMessage = `Hi ${name},\n\nThis is regarding your franchise enquiry for ${data.city}.\n\nYour application status has been updated to: CLOSED.\n\nIf you have any questions, feel free to reply to this email.\n\nBest Regards,\nRabuste Franchise Team`;
+        } else {
+            emailMessage = `Hi ${name},\n\nYour franchise enquiry status has been updated to: ${data.status.toUpperCase()}.\n\nBest Regards,\nRabuste Team`;
         }
         break;
 
-      // customer order complete
-      case "preorder":
-        title = "Order Confirmation - Rabuste Coffee";
-        emailMessage = `Hi ${name},\n\nYour order for ₹${data.amount} has been placed successfully.\nOrder ID: ${referenceId}\nPickup Time: ${data.pickupTime}.\n\nThank you,\nRabuste Team`;
-        break;
-
-      // admin order email
-      case "admin_new_order":
-        title = `📢 New Order Received: ₹${data.amount}`;
-        emailMessage = `Hello Admin,\n\nYou have received a NEW ORDER! 🎉\n\nCustomer Name: ${data.customerName}\nOrder ID: ${referenceId}\nTotal Amount: ₹${data.amount}\nPickup Time: ${data.pickupTime}\n\nPlease check the dashboard to accept/reject.`;
-        break;
-      
-      // workshop registration
-      case "workshop_registration":
-        title = `Workshop Ticket Confirmed: ${data.workshopTitle} - Rabuste Coffee`;
-        emailMessage = `Hi ${name},\n\nYou have successfully registered for the workshop: "${data.workshopTitle}".\n\n📅 Date: ${new Date(data.date).toLocaleDateString()}\n⏰ Time: ${data.time}\n🎟 Tickets: ${data.tickets}\n📍 Location: Rabuste HQ, Gandhinagar\n\nYour Registration ID is: ${referenceId}\n\nSee you there! ☕`;
-        break;
+      case "admin_password_reset":
+        title = "🔒 Security Alert: Password Reset - Rabuste Admin";
+        emailMessage = `Hello ${name},\n\nYour password has been reset successfully upon request.\n\n👉 Your New Temporary Password is: ${data.tempPassword}\n\nPlease login using this password and change it immediately for security purposes.\n\nRegards,\nRabuste Security Team`;
+        break; 
     
       default:
         title = "Notification";

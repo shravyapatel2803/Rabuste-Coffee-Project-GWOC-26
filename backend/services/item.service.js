@@ -71,8 +71,8 @@ const buildItemPayload = ({ body }) => {
     milkBased: body.milkBased !== undefined ? normalizeBoolean(body.milkBased) : undefined,
     bestPairedArtMood: Array.isArray(parsedArtMoods) ? parsedArtMoods.filter(Boolean) : undefined,
     pairingExplanation: parsedExplanations && typeof parsedExplanations === "object" ? new Map(Object.entries(parsedExplanations)) : undefined,
-    isFeatured: body.isFeatured !== undefined ? normalizeBoolean(body.isFeatured) : undefined,
     availability: body.isSoldOut !== undefined ? { isSoldOut, isAvailable: !isSoldOut } : undefined,
+    visibility: body.visibility,
   });
 };
 
@@ -146,7 +146,6 @@ const buildFilter = ({ query, context }) => {
   if (query.type) filter.type = normalizeIdentifier(query.type);
   if (query.roastType) filter.roastType = normalizeIdentifier(query.roastType);
   if (query.showIn) filter.showIn = normalizeIdentifier(query.showIn);
-  if (query.isFeatured !== undefined) filter.isFeatured = query.isFeatured === "true";
   if (query.milkBased !== undefined) filter.milkBased = query.milkBased === "true";
   if (query.bestForMood) filter.bestForMood = { $in: normalizeIdentifierArray(query.bestForMood) };
   if (query.bestTime) filter.bestTime = { $in: normalizeIdentifierArray(query.bestTime) };
@@ -170,26 +169,49 @@ const buildFilter = ({ query, context }) => {
 
 export const listItems = async ({ query = {}, context, mode }) => {
   const filter = buildFilter({ query, context });
+
   if (context === "user" && mode === "menu") {
     const items = await Item.find(filter).sort({ category: 1, price: 1 }).lean();
     return { items };
   }
+
   if (context === "user" && mode === "shop") {
     const limit = Number(query.limit || 12);
     const cursor = query.cursor || null;
+
     if (!cursor) {
-      const items = await Item.aggregate([{ $match: filter }, { $sample: { size: limit } }]);
-      return { items, hasMore: true, nextCursor: items.at(-1)?._id || null };
+      const items = await Item.aggregate([
+        { $match: filter }, 
+        { $sample: { size: limit } } 
+      ]);
+      
+      return { 
+        items, 
+        hasMore: true, 
+        nextCursor: items.length > 0 ? items.at(-1)._id : null 
+      };
     }
-    const items = await Item.find({ ...filter, _id: { $lt: cursor } }).sort({ _id: -1 }).limit(limit + 1).lean();
+
+    const items = await Item.find({ ...filter, _id: { $lt: cursor } })
+      .sort({ _id: -1 })
+      .limit(limit + 1)
+      .lean();
+
     const hasMore = items.length > limit;
     if (hasMore) items.pop();
-    return { items, hasMore, nextCursor: items.at(-1)?._id || null };
+
+    return { 
+      items, 
+      hasMore, 
+      nextCursor: items.length > 0 ? items.at(-1)._id : null 
+    };
   }
+
   if (context === "admin") {
     const items = await Item.find(filter).sort({ createdAt: -1 }).lean();
     return { items, total: items.length };
   }
+  
   return { items: [], total: 0 };
 };
 

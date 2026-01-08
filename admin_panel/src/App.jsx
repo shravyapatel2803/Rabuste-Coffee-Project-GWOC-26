@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { Menu as MenuIcon } from 'lucide-react';
+import { Menu as MenuIcon, Loader2 } from 'lucide-react'; // Loader icon added
 
 import Sidebar from './components/Sidebar';
 
@@ -15,6 +15,7 @@ import PreOrders from './pages/PreOrders';
 import OrderDetails from './pages/OrderDetails';
 import AIManagement from './pages/AIManagement';
 
+// --- LAYOUT COMPONENT ---
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -32,7 +33,7 @@ const Layout = ({ children }) => {
         </header>
 
         {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-8">
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 relative">
           {children}
         </main>
       </div>
@@ -40,14 +41,36 @@ const Layout = ({ children }) => {
   );
 };
 
+// --- PROTECTED ROUTE COMPONENT ---
 const ProtectedRoute = ({ children, layout = true }) => {
-  const { isAdmin, loading } = useAuth();
+  // 🔴 CHANGE 1: 'isAdmin' ki jagah 'admin' use karein (jo context me hai)
+  const { admin, loading } = useAuth();
   
-  if (loading) return null;
+  // 🔴 CHANGE 2: Loading ke waqt blank screen ki jagah spinner dikhayein
+  if (loading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-rabuste-bg">
+        <Loader2 className="animate-spin text-rabuste-gold" size={40} />
+      </div>
+    );
+  }
   
-  if (!isAdmin) return <Navigate to="/login" />;
+  // Agar admin login nahi hai, to Login page par bhejein
+  if (!admin) return <Navigate to="/login" replace />;
 
   return layout ? <Layout>{children}</Layout> : children;
+};
+
+// --- PUBLIC ROUTE (Prevent Login access if already logged in) ---
+const PublicRoute = ({ children }) => {
+  const { admin, loading } = useAuth();
+
+  if (loading) return null; // Login page par loading dikhane ki zarurat nahi usually
+
+  // Agar admin pehle se login hai, to Dashboard par bhejein
+  if (admin) return <Navigate to="/" replace />;
+
+  return children;
 };
 
 function App() {
@@ -55,15 +78,23 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          <Route path="/login" element={<Login />} />
+          
+          {/* Public Route: Login */}
+          <Route path="/login" element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          } />
  
+          {/* Protected Routes */}
           <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/pre-orders" element={<ProtectedRoute><PreOrders /></ProtectedRoute>} />
 
+          {/* Note: Order Details me Layout=false hai. Agar sidebar chahiye to ise true kar dein */}
           <Route 
             path="/orders/:id" 
             element={
-              <ProtectedRoute layout={false}>
+              <ProtectedRoute layout={false}> 
                 <OrderDetails />
               </ProtectedRoute>
             } 
@@ -75,7 +106,6 @@ function App() {
           <Route path="/workshops" element={<ProtectedRoute><Workshops /></ProtectedRoute>} />
           <Route path="/franchise" element={<ProtectedRoute><Franchise /></ProtectedRoute>} />
           
-          {/* FIXED: Wrapped in ProtectedRoute to show Sidebar */}
           <Route path="/ai-control" element={<ProtectedRoute><AIManagement /></ProtectedRoute>} />
         
         </Routes>

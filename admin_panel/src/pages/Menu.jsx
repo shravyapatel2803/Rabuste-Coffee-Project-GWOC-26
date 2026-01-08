@@ -55,7 +55,7 @@ const MenuItems = () => {
     total: items.length,
     available: items.filter(i => i.availability?.isAvailable).length,
     soldOut: items.filter(i => i.availability?.isSoldOut).length,
-    featured: items.filter(i => i.isFeatured).length,
+    hidden: items.filter(i => i.visibility === "hidden").length
   }), [items]);
 
   /* ================= ACTIONS ================= */

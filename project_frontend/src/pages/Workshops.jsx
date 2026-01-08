@@ -1,36 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import { getAllWorkshops } from '../api/workshop.api'; 
+import React from 'react';
 import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
 import PageTransition from '../components/common/PageTransition';
-import { Loader2, Calendar, Clock, Tag, AlertCircle, Users } from 'lucide-react';
+import { Calendar, Clock, Tag, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+import { useShop } from '../context/ShopContext';
+
 const Workshops = () => {
-  const [workshops, setWorkshops] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const { data } = await getAllWorkshops();
-        setWorkshops(Array.isArray(data) ? data : data.data || []);
-      } catch (error) {
-        console.error("Failed to fetch workshops", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadData();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-rabuste-bg flex items-center justify-center text-rabuste-orange">
-        <Loader2 className="animate-spin" size={40} />
-      </div>
-    );
-  }
+  const { workshops } = useShop();
 
   return (
     <PageTransition>

@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ArrowRight, ArrowLeft } from "lucide-react";
-import { fetchPublicArts } from "../api/art.api.js";
 import Navbar from "../components/common/Navbar";
 import Footer from "../components/common/Footer";
 
-// --- SINGLE ART CARD (Grid View) ---
+import { useShop } from "../context/ShopContext";
+
 const Card = ({ art, onClick }) => {
   return (
     <motion.div
@@ -73,7 +73,6 @@ const ImmersiveView = ({ arts, selectedId, onClose }) => {
 
     const handleWheel = (e) => {
       if (e.deltaY !== 0) {
-        // e.preventDefault(); // Optional: uncomment to lock vertical page scroll
         container.scrollLeft += e.deltaY;
       }
     };
@@ -90,7 +89,6 @@ const ImmersiveView = ({ arts, selectedId, onClose }) => {
       className="fixed inset-0 z-[100] bg-rabuste-bg/95 backdrop-blur-xl flex flex-col"
     >
       {/* --- TOP CONTROLS --- */}
-      {/* Added gradient so text is always visible on top of images */}
       <div className="absolute top-0 left-0 w-full p-6 flex justify-between items-start z-50 pointer-events-none bg-gradient-to-b from-black/80 to-transparent h-32">
         <div className="text-white font-bold text-xs uppercase tracking-widest opacity-90 mt-1">
           Gallery View
@@ -134,7 +132,6 @@ const ImmersiveView = ({ arts, selectedId, onClose }) => {
               {/* DETAILS SIDE (FIXED VISIBILITY) */}
               <div className="w-full flex-1 md:h-full flex flex-col justify-center text-left p-8 md:pr-10 overflow-y-auto no-scrollbar 
                               bg-white dark:bg-stone-950 md:bg-transparent"> 
-                              {/* ^^^ Changed bg-rabuste-bg to explicit bg-white/dark:bg-stone-950 for mobile contrast */}
                 
                 <motion.div
                   initial={{ opacity: 0, x: 50 }}
@@ -175,7 +172,6 @@ const ImmersiveView = ({ arts, selectedId, onClose }) => {
                     </div>
                     
                     {art.availabilityStatus === 'available' && (
-                        // BUTTON FIX: Added bg-rabuste-orange text-white shadow-lg
                         <button className="px-6 py-3 md:px-8 bg-rabuste-orange text-white font-bold uppercase tracking-widest text-xs rounded-sm hover:bg-rabuste-gold hover:scale-105 transition-all shadow-lg shadow-orange-900/20">
                           Acquire Art
                         </button>
@@ -201,25 +197,9 @@ const ImmersiveView = ({ arts, selectedId, onClose }) => {
 
 // --- MAIN PAGE COMPONENT ---
 const ArtGallery = () => {
-  const [arts, setArts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { arts } = useShop(); 
   const [selectedId, setSelectedId] = useState(null);
 
-  // Fetch Data
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await fetchPublicArts();
-        const data = res.data?.data || res.data || [];
-        setArts(data);
-      } catch (error) {
-        console.error("Failed to load arts", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
 
   return (
     <div className="min-h-screen bg-rabuste-bg pb-20 pt-24 md:pt-32 transition-colors duration-500">
@@ -240,19 +220,15 @@ const ArtGallery = () => {
         </div>
 
         {/* GRID */}
-        {loading ? (
-          <div className="flex justify-center py-20"><span className="animate-spin">Loading...</span></div>
-        ) : (
-          <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
-            {arts.map((art) => (
-              <Card 
-                key={art._id} 
-                art={art} 
-                onClick={() => setSelectedId(art._id)} 
-              />
-            ))}
-          </div>
-        )}
+        <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
+          {arts.map((art) => (
+            <Card 
+              key={art._id} 
+              art={art} 
+              onClick={() => setSelectedId(art._id)} 
+            />
+          ))}
+        </div>
       </div>
 
       {/* IMMERSIVE MODAL */}

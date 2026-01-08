@@ -40,7 +40,6 @@ const aiResponseSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-aiResponseSchema.index({ key: 1 });
 aiResponseSchema.index({ category: 1 });
 aiResponseSchema.index({ isActive: 1 });
 

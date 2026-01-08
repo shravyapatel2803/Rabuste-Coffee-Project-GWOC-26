@@ -1,19 +1,13 @@
 import { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2 } from "lucide-react";
-
-import { getUserItems } from "../api/item.api";
+import { useShop } from "../context/ShopContext";
 import MenuCategoryGroup from "../components/menu/MenuCategoryGroup";
 import MenuFilters from "../components/menu/MenuFilters";
+import Preloader from "../components/common/Preloader"; 
 
-/*  normalize */
+/* normalize */
 const normalize = (str = "") =>
-  str
-    .toLowerCase()
-    .trim()
-    .replace(/[_–—]/g, "-")
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, " ");
+  str.toLowerCase().trim().replace(/[_–—]/g, "-").replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, " ");
 
 const CATEGORY_ORDER = [
   "robusta special",
@@ -25,60 +19,44 @@ const CATEGORY_ORDER = [
 ].map(normalize);
 
 const Menu = () => {
-  /* DATA */
+  const { menuItems, isGlobalLoading } = useShop(); 
+  
   const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
+  
 
-  /* FILTER STATE  */
+  /* FILTER STATE */
   const [category, setCategory] = useState("all");
   const [type, setType] = useState("");
   const [milkBased, setMilkBased] = useState(false);
 
-  /* FETCH MENU ITEMS */
   useEffect(() => {
-    const loadItems = async () => {
-      setLoading(true);
-      try {
-        const res = await getUserItems({
-          showIn: "menu",
-          type: type || undefined,
-          milkBased: milkBased ? true : undefined,
-        });
+    let result = menuItems || [];
 
-        setItems(Array.isArray(res?.data?.items) ? res.data.items : []);
-      } catch (err) {
-        console.error("MENU FETCH ERROR", err);
-        setItems([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+    // Apply Type Filter
+    if (type) {
+        result = result.filter(item => item.type === type);
+    }
 
-    loadItems();
-  }, [type, milkBased]);
+    // Apply Milk Filter
+    if (milkBased) {
+        result = result.filter(item => item.milkBased === true);
+    }
+
+    setItems(result);
+  }, [menuItems, type, milkBased]); 
 
   /* GROUP + ORDER */
   const grouped = useMemo(() => {
     const map = {};
-
     items.forEach((item) => {
       if (!item?.category) return;
-
       const key = normalize(item.category);
-
       if (category !== "all" && normalize(category) !== key) return;
-
       if (!map[key]) {
-        map[key] = {
-          key,
-          category: item.category, // original label
-          items: [],
-        };
+        map[key] = { key, category: item.category, items: [] };
       }
-
       map[key].items.push(item);
     });
-
     return Object.values(map).sort((a, b) => {
       const ia = CATEGORY_ORDER.indexOf(a.key);
       const ib = CATEGORY_ORDER.indexOf(b.key);
@@ -86,10 +64,10 @@ const Menu = () => {
     });
   }, [items, category]);
 
-  if (loading) {
+  if (isGlobalLoading || (!menuItems.length && items.length === 0)) {
     return (
-      <div className="flex justify-center items-center h-[50vh] text-rabuste-orange">
-        <Loader2 className="animate-spin" size={32} />
+      <div className="flex justify-center items-center h-[60vh]">
+        <Preloader inline={true} />
       </div>
     );
   }
@@ -97,8 +75,6 @@ const Menu = () => {
   return (
     <div className="bg-rabuste-bg text-rabuste-text min-h-screen px-6">
       <div className="max-w-5xl mx-auto">
-
-        {/* FILTER COMPONENT */}
         <MenuFilters
           category={category}
           setCategory={setCategory}
@@ -108,22 +84,26 @@ const Menu = () => {
           setMilkBased={setMilkBased}
         />
 
-        {/* MENU */}
-        <AnimatePresence>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="space-y-20"
-          >
-            {grouped.map((group) => (
-              <MenuCategoryGroup
-                key={group.key}
-                group={group}
-              />
-            ))}
-          </motion.div>
+        <AnimatePresence mode="wait">
+            <motion.div
+              key={category + type + milkBased}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-20"
+            >
+              {grouped.length > 0 ? (
+                grouped.map((group) => (
+                  <MenuCategoryGroup key={group.key} group={group} />
+                ))
+              ) : (
+                <div className="text-center py-20 text-rabuste-muted">
+                    No items found with these filters.
+                </div>
+              )}
+            </motion.div>
         </AnimatePresence>
-
       </div>
     </div>
   );

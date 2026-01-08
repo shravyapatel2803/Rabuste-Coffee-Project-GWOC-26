@@ -1,7 +1,7 @@
-// src/pages/ShopItemDetail.jsx
 import { useEffect, useState, useRef } from "react"; 
 import { useParams, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
+import { useShop } from "../context/ShopContext"; 
 import { Loader2, ArrowLeft, ShoppingBag, Check } from "lucide-react";
 import Navbar from "../components/common/Navbar";
 import Footer from "../components/common/Footer";
@@ -11,6 +11,7 @@ const ShopItemDetail = () => {
   const { slug } = useParams(); 
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { menuItems } = useShop(); 
 
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -19,35 +20,39 @@ const ShopItemDetail = () => {
   const hasRecordedView = useRef(false);
 
   useEffect(() => {
-    const fetchItem = async () => {
+    const loadItem = async () => {
       setLoading(true);
-      try {
-        const res = await getUserItemBySlug(slug);
-        setItem(res.data);
+      const cachedItem = menuItems.find(i => i.slug === slug);
 
-        // Unique key for this item
-        const storageKey = `viewed_item_${slug}`;
+      if (cachedItem) {
+        setItem(cachedItem);
+        setLoading(false);
+      }
+
+      try {
+        if (!cachedItem) {
+             const res = await getUserItemBySlug(slug);
+             setItem(res.data);
+        }
         
+        const storageKey = `viewed_item_${slug}`;
         if (!localStorage.getItem(storageKey) && !hasRecordedView.current) {
           hasRecordedView.current = true; 
-      
           recordItemView(slug)
-            .then(() => {
-              localStorage.setItem(storageKey, "true");
-            })
+            .then(() => localStorage.setItem(storageKey, "true"))
             .catch((err) => console.error("Silent item view failed", err));
         }
 
       } catch (err) {
         console.error("SHOP ITEM FETCH ERROR", err);
-        setItem(null);
+        if(!cachedItem) setItem(null);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchItem();
-  }, [slug]);
+    loadItem();
+  }, [slug, menuItems]);
 
   const handleAddToCart = () => {
     if (!item) return;
@@ -77,7 +82,6 @@ const ShopItemDetail = () => {
       <Navbar />
 
       <div className="pt-32 px-6 max-w-6xl mx-auto pb-20">
-        {/* BACK */}
         <button
           onClick={() => navigate(-1)}
           className="flex items-center gap-2 text-rabuste-muted hover:text-rabuste-orange transition-colors mb-12 uppercase tracking-widest text-xs font-bold"
@@ -107,7 +111,6 @@ const ShopItemDetail = () => {
               {item.name}
             </h1>
 
-            {/* FULL DESCRIPTION */}
             <p className="text-rabuste-muted text-lg leading-relaxed mb-8 font-light">
               {item.description}
             </p>

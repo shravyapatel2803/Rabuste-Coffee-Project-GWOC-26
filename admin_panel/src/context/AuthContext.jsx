@@ -1,44 +1,66 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { loginAdmin, getMe } from '../api/auth'; 
 
 const AuthContext = createContext();
 
+export const useAuth = () => useContext(AuthContext);
+
 export const AuthProvider = ({ children }) => {
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [admin, setAdmin] = useState(null); 
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user was already logged in
-    const loggedIn = localStorage.getItem('adminLoggedIn');
-    if (loggedIn === 'true') {
-      setIsAdmin(true);
-    }
-    setLoading(false);
+    const checkLoggedIn = async () => {
+      const token = localStorage.getItem('adminToken');
+      
+      if (token) {
+        try {
+          const res = await getMe();
+          if (res.data.success) {
+            setAdmin(res.data.data); 
+          } else {
+            localStorage.removeItem('adminToken');
+            setAdmin(null);
+          }
+        } catch  {
+          console.error("Session expired or invalid");
+          localStorage.removeItem('adminToken');
+          setAdmin(null);
+        }
+      }
+      setLoading(false);
+    };
+
+    checkLoggedIn();
   }, []);
 
-  const login = (username, password) => {
-    // SECURITY FIX: Read from Environment Variables
-    // This prevents the password from being seen in the GitHub code
-    const secureUser = import.meta.env.VITE_ADMIN_USER;
-    const securePass = import.meta.env.VITE_ADMIN_PASS;
-
-    if (username === secureUser && password === securePass) {
-      localStorage.setItem('adminLoggedIn', 'true');
-      setIsAdmin(true);
-      return true;
+  const login = async (email, password) => {
+    try {
+      const res = await loginAdmin({ email, password });
+      
+      if (res.data.success) {
+        localStorage.setItem('adminToken', res.data.token);
+        setAdmin(res.data.admin);
+        return { success: true };
+      }
+    } catch (error) {
+      console.error("Login Failed:", error.response?.data?.message);
+      return { 
+        success: false, 
+        message: error.response?.data?.message || "Invalid Email or Password" 
+      };
     }
-    return false;
   };
 
   const logout = () => {
-    localStorage.removeItem('adminLoggedIn');
-    setIsAdmin(false);
+    localStorage.removeItem('adminToken');
+    setAdmin(null);
+    window.location.href = '/login';
   };
 
   return (
-    <AuthContext.Provider value={{ isAdmin, login, logout, loading }}>
+    <AuthContext.Provider value={{ admin, login, logout, loading }}>
       {!loading && children}
     </AuthContext.Provider>
   );
 };
-
-export const useAuth = () => useContext(AuthContext);

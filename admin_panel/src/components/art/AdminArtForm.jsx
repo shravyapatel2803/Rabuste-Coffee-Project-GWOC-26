@@ -20,7 +20,6 @@ const INITIAL_FORM_STATE = {
   price: "",
   location: "",
   isDisplayed: false,
-  isFeatured: false,
   visibility: "public",
   pairedCoffeeId: "",
 };
@@ -165,9 +164,10 @@ const AdminArtForm = ({ mode = "add", art: existingArt, onClose, onSuccess }) =>
         price: existingArt.price || "",
         location: existingArt.displayLocation || "",
         isDisplayed: existingArt.isCurrentlyDisplayed || false,
-        isFeatured: existingArt.isFeatured || false,
         visibility: existingArt.visibility || "public",
-        pairedCoffeeId: existingArt.bestPairedCoffee || "",
+        pairedCoffeeId: existingArt.bestPairedCoffee?._id 
+          ? existingArt.bestPairedCoffee._id  
+          : (existingArt.bestPairedCoffee || ""),
       });
 
       if (existingArt.image?.url) setImagePreview(existingArt.image.url);
@@ -272,7 +272,6 @@ const AdminArtForm = ({ mode = "add", art: existingArt, onClose, onSuccess }) =>
     data.append("height", form.height);
     data.append("isFramed", form.isFramed);
     data.append("isDisplayed", form.isDisplayed);
-    data.append("isFeatured", form.isFeatured);
     if (imageFile) data.append("image", imageFile);
 
     try {
@@ -496,10 +495,6 @@ const AdminArtForm = ({ mode = "add", art: existingArt, onClose, onSuccess }) =>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" name="isDisplayed" checked={form.isDisplayed} onChange={handleChange} className="w-4 h-4 accent-green-600" />
                     <span className="text-sm text-gray-700">Currently Displayed in Café</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" name="isFeatured" checked={form.isFeatured} onChange={handleChange} className="w-4 h-4 accent-yellow-500" />
-                    <span className="text-sm text-gray-700">Featured Artwork</span>
                   </label>
                 </div>
               </div>

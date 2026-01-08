@@ -27,9 +27,9 @@ const MenuStats = ({ stats }) => {
       />
 
       <StatCard
-        title="Featured"
-        value={stats.featured}
-        color="bg-orange-500"
+        title="Hidden (Drafts)"
+        value={stats.hidden}  
+        color="bg-gray-500"  
       />
     </div>
   );

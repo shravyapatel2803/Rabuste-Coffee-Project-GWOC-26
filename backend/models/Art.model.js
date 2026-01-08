@@ -104,11 +104,6 @@ const artSchema = new mongoose.Schema(
       default: true
     },
 
-    isFeatured: {
-      type: Boolean,
-      default: false
-    },
-
     visibility: {
       type: String,
       enum: ["public", "hidden"],

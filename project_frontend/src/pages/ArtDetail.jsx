@@ -1,7 +1,9 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { fetchPublicArtBySlug, recordArtView } from "../api/art.api"; 
-import { Share2, Heart, ArrowLeft } from "lucide-react";
+import { Share2, Heart, ArrowLeft, Loader2 } from "lucide-react";
+import Navbar from "../components/common/Navbar"; 
+import { useShop } from "../context/ShopContext";
 
 import ArtistCard from "../components/art/ArtistCard";
 import CoffeePairingCard from "../components/art/CoffeePairingCard";
@@ -11,21 +13,32 @@ import ArtTags from "../components/art/ArtTags";
 const ArtDetail = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
+  
+  const { arts } = useShop();
+
   const [art, setArt] = useState(null);
   const [loading, setLoading] = useState(true);
   
-
   const hasRecordedView = useRef(false);
 
   useEffect(() => {
     if (!slug) return;
-    setLoading(true);
 
-    fetchPublicArtBySlug(slug)
-      .then((res) => {
-        setArt(res.data || res);
-        
-        //  QUIET VIEW COUNTING 
+    const loadArt = async () => {
+      setLoading(true);
+      const cachedArt = arts.find(a => a.slug === slug || a._id === slug);
+      
+      if (cachedArt) {
+        setArt(cachedArt);
+        setLoading(false); 
+      }
+
+      try {
+        if (!cachedArt) {
+             const res = await fetchPublicArtBySlug(slug);
+             setArt(res.data || res);
+        }
+
         const storageKey = `viewed_art_${slug}`;
         if (!localStorage.getItem(storageKey) && !hasRecordedView.current) {
           hasRecordedView.current = true;
@@ -33,25 +46,32 @@ const ArtDetail = () => {
             .then(() => localStorage.setItem(storageKey, "true"))
             .catch((err) => console.error("Silent view count failed", err));
         }
-      })
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false));
-  }, [slug]);
+
+      } catch (err) {
+        console.error("Art Load Error", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadArt();
+  }, [slug, arts]);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex justify-center items-center bg-rabuste-bg">
-        <div className="w-12 h-12 border-4 border-rabuste-orange border-t-transparent rounded-full animate-spin"></div>
+      <div className="min-h-screen flex justify-center items-center bg-rabuste-bg text-rabuste-orange">
+        <Loader2 className="animate-spin" size={40} />
       </div>
     );
   }
 
-  if (!art) return <div className="text-center pt-32">Artwork not found</div>;
+  if (!art) return <div className="text-center pt-32 text-rabuste-text">Artwork not found</div>;
 
   const isForSale = art.availabilityStatus === "available";
 
   return (
     <div className="min-h-screen bg-[#fcf9f6] dark:bg-[#1c1916] text-rabuste-text dark:text-[#f5efe6] pb-20 pt-24 md:pt-32">
+      <Navbar />
       
       {/* Back Button */}
       <div className="max-w-7xl mx-auto px-6 mb-8">

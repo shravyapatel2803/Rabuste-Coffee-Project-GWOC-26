@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { Mail, MapPin, Loader2 } from 'lucide-react';
 import Reveal from '../components/Reveal';
-import API from '../api/api'; // Import your axios instance
+import { createFranchiseEnquiry } from '../api/franchise.api'; 
 
 const Franchise = () => {
-  // 1. Add state to hold form data
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -12,23 +11,24 @@ const Franchise = () => {
     city: '',
     message: ''
   });
-  const [status, setStatus] = useState('idle'); // idle, loading, success, error
+  const [status, setStatus] = useState('idle'); 
 
-  // 2. Handle input changes
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // 3. Handle Form Submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus('loading');
 
     try {
-      // Send data to your backend (You'll need to create this route later!)
-      await API.post('/franchise-request', formData);
+      await createFranchiseEnquiry(formData);
+      
       setStatus('success');
-      setFormData({ name: '', email: '', message: '' }); // Clear form
+      setFormData({ name: '', email: '', phone: '', city: '', message: '' });
+      
+      setTimeout(() => setStatus('idle'), 5000);
+      
     } catch (error) {
       console.error(error);
       setStatus('error');
@@ -39,7 +39,7 @@ const Franchise = () => {
     <section id="franchise" className="py-16 md:py-32 px-6 bg-rabuste-bg border-t border-rabuste-text/5">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
 
-        {/* Left Side (Text Info) - Kept same as your original file */}
+        {/* Left Side (Text Info) */}
         <div className="order-2 lg:order-1">
           <Reveal>
             <span className="text-rabuste-orange font-bold tracking-[0.2em] uppercase text-xs mb-4 block">
@@ -53,7 +53,25 @@ const Franchise = () => {
             </p>
 
             <div className="space-y-6 md:space-y-8">
-              {/* ... (Existing icons/text code here) ... */}
+              <div className="flex items-center gap-4 group cursor-pointer">
+                <div className="w-12 h-12 rounded-full border border-rabuste-text/10 flex items-center justify-center group-hover:border-rabuste-orange transition-colors">
+                  <Mail className="text-rabuste-muted group-hover:text-rabuste-orange transition-colors" size={20} />
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-widest text-rabuste-muted mb-1">Email Us</p>
+                  <p className="text-rabuste-text font-serif text-lg">franchise@rabuste.com</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 group cursor-pointer">
+                <div className="w-12 h-12 rounded-full border border-rabuste-text/10 flex items-center justify-center group-hover:border-rabuste-orange transition-colors">
+                  <MapPin className="text-rabuste-muted group-hover:text-rabuste-orange transition-colors" size={20} />
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-widest text-rabuste-muted mb-1">Headquarters</p>
+                  <p className="text-rabuste-text font-serif text-lg">Gandhinagar, Gujarat</p>
+                </div>
+              </div>
             </div>
           </Reveal>
         </div>
@@ -89,8 +107,8 @@ const Franchise = () => {
                     placeholder="john@example.com"
                   />
                   {/* Phone Field */}
-                  <div>
-                    <label className="block text-xs uppercase tracking-widest text-rabuste-muted mb-2 pt-4 pb-1">Phone</label>
+                  <div className="mt-4">
+                    <label className="block text-xs uppercase tracking-widest text-rabuste-muted mb-2">Phone</label>
                     <input
                       name="phone"
                       value={formData.phone}
@@ -103,7 +121,7 @@ const Franchise = () => {
                   </div>
 
                   {/* City Field */}
-                  <div>
+                  <div className="mt-4">
                     <label className="block text-xs uppercase tracking-widest text-rabuste-muted mb-2">City</label>
                     <input
                       name="city"
@@ -130,13 +148,14 @@ const Franchise = () => {
 
                 <button
                   disabled={status === 'loading' || status === 'success'}
-                  className="w-full py-4 bg-rabuste-gold text-white font-bold tracking-widest uppercase hover:bg-rabuste-text transition-colors text-sm md:text-base flex justify-center items-center gap-2"
+                  className="w-full py-4 bg-rabuste-gold text-white font-bold tracking-widest uppercase hover:bg-rabuste-text transition-colors text-sm md:text-base flex justify-center items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  {status === 'loading' && <Loader2 className="animate-spin" />}
+                  {status === 'loading' && <Loader2 className="animate-spin" size={20} />}
                   {status === 'success' ? 'Request Sent!' : 'Submit Request'}
+                  {status === 'idle' || status === 'error' ? 'Submit Request' : null}
                 </button>
 
-                {status === 'error' && <p className="text-red-500 text-xs mt-2">Something went wrong. Try again.</p>}
+                {status === 'error' && <p className="text-red-500 text-xs mt-2 text-center">Something went wrong. Please try again.</p>}
               </div>
             </form>
           </Reveal>

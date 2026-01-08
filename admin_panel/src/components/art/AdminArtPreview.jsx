@@ -56,7 +56,6 @@ const AdminArtPreview = ({ item, onClose, onEdit }) => {
               {(item.availabilityStatus === "sold" || item.status === "sold") && badge("Sold Out", "bg-red-50 text-red-700 border-red-200")}
               {(item.availabilityStatus === "not-for-sale" || item.status === "not_for_sale") && badge("Not For Sale", "bg-purple-50 text-purple-700 border-purple-200")}
 
-              {item.isFeatured && badge("Featured", "bg-amber-50 text-amber-700 border-amber-200")}
               {(item.isCurrentlyDisplayed || item.isDisplayed) && badge("On Display", "bg-teal-50 text-teal-700 border-teal-200")}
             </div>
           </div>

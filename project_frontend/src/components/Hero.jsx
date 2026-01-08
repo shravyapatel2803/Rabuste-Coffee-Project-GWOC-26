@@ -1,81 +1,149 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
+import { Canvas } from '@react-three/fiber';
+import { Environment, Float, ContactShadows, OrbitControls } from '@react-three/drei';
+import { Link } from 'react-router-dom'; 
 
-const Hero = () => {
+import ThreeCoffeeCup from '../ThreeCoffeeCup'; 
+import ThreeDoubleSidedBox from '../ThreeDoubleSidedBox'; 
+
+const useThemeDetector = () => {
+  const [isDark, setIsDark] = useState(false);
+  useEffect(() => {
+    const checkTheme = () => setIsDark(document.documentElement.classList.contains('dark'));
+    checkTheme();
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
+  return isDark;
+};
+
+const Hero = ({ featuredItem }) => {
   const { scrollY } = useScroll();
-  const indicatorOpacity = useTransform(scrollY, [0, 200], [1, 0]);
+  const textY = useTransform(scrollY, [0, 500], [0, 200]);
+  const isDark = useThemeDetector();
+
+  const itemVars = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { y: 0, opacity: 1, transition: { duration: 0.8, ease: "easeOut" } }
+  };
+
+  const hasFeatured = featuredItem && featuredItem.image?.url;
 
   return (
-    <section id="home" className="relative h-[100dvh] w-full overflow-hidden bg-rabuste-bg flex flex-col justify-center items-center">
+    <section id="home" className="relative h-screen w-full overflow-hidden flex items-center bg-rabuste-bg transition-colors duration-500">
       
-      {/* Background */}
-      <div className="absolute inset-0 z-0">
-        {/* Updated gradient to use dynamic background color */}
-        <div className="absolute inset-0 bg-gradient-to-t from-rabuste-bg via-rabuste-bg/60 to-black/10 dark:to-black/40 z-10" />
-        <img
-          src="https://images.unsplash.com/photo-1497935586351-b67a49e012bf?q=80&w=2071&auto=format&fit=crop"
-          alt="Coffee Background"
-          className="w-full h-full object-cover opacity-50 grayscale-[20%]"
-        />
-      </div>
-
-      {/* Main Content */}
-      <div className="relative z-30 text-center px-4 max-w-5xl mx-auto mt-10">
-        <motion.div
-          initial={{ opacity: 1, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "circOut" }}
-        >
-          <span className="inline-block py-1 px-3 rounded-full text-[10px] md:text-xs font-bold tracking-[0.2em] mb-4 md:mb-6 uppercase backdrop-blur-sm 
-            border border-rabuste-text/10 text-rabuste-text transition-colors duration-300">
-            Est. 2024 • Gujarat
-          </span>
-
-          {/* FIX: Removed dark:text-white, now uses dynamic rabuste-text */}
-          <h1 className="text-4xl sm:text-6xl md:text-8xl lg:text-9xl font-serif font-black leading-[0.9] tracking-tight mb-6 
-            text-rabuste-text transition-colors duration-300">
-            BOLD <span className="text-rabuste-orange italic">ROBUSTA</span>
-          </h1>
+      {/* TEXT CONTENT */}
+      <div className="w-full md:w-1/2 h-full flex flex-col justify-center px-6 md:pl-20 relative z-20 pointer-events-none">
+        <motion.div style={{ y: textY }} initial="hidden" animate="visible" transition={{ staggerChildren: 0.1 }} className="pointer-events-auto">
           
-          {/* FIX: Removed dark:text-gray-300, now uses rabuste-muted */}
-          <p className="text-sm sm:text-base md:text-xl font-light max-w-xl md:max-w-2xl mx-auto mb-8 md:mb-10 leading-relaxed 
-            text-rabuste-muted transition-colors duration-300 px-4">
-            Not just a café. A sanctuary where intense flavors meet industrial art. 
-            Experience the raw energy of pure Robusta.
-          </p>
+          <motion.div variants={itemVars}>
+            <span className="inline-block py-1 px-3 rounded-full text-[10px] md:text-xs font-bold tracking-[0.2em] mb-4 md:mb-6 uppercase backdrop-blur-sm border border-rabuste-text/10 text-rabuste-text transition-colors duration-300">
+              {hasFeatured ? "Featured Selection" : "Est. 2024 • Gujarat"}
+            </span>
+          </motion.div>
+          
+          <motion.h1 variants={itemVars} className="text-5xl md:text-7xl lg:text-8xl font-serif font-black leading-[0.9] mb-6 text-rabuste-text transition-colors duration-300">
+            {hasFeatured ? (
+              <>
+                TRY <br/>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-rabuste-gold to-rabuste-orange italic">
+                  {featuredItem.name.split(" ")[0]} 
+                </span>
+                <span className="block text-4xl md:text-6xl mt-2 opacity-80">
+                   {featuredItem.name.split(" ").slice(1).join(" ")}
+                </span>
+              </>
+            ) : (
+              <>
+                BOLD <br/>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-rabuste-gold to-rabuste-orange italic">
+                  ROBUSTE
+                </span>
+              </>
+            )}
+          </motion.h1>
 
-          <div className="flex flex-col sm:flex-row gap-4 sm:gap-5 justify-center items-center">
-            {/* Primary Button: High Contrast */}
-            <a 
-              href="#menu" 
-              className="w-full sm:w-auto px-8 py-4 font-bold tracking-widest text-xs uppercase rounded-sm transition-all min-w-[180px] flex items-center justify-center
-                bg-rabuste-text text-rabuste-bg hover:bg-rabuste-orange hover:text-white"
-            >
-              View Menu
-            </a>
-            
-            {/* Secondary Button: Outline */}
-            <a 
-              href="#gallery" 
-              className="w-full sm:w-auto px-8 py-4 border font-bold tracking-widest text-xs uppercase rounded-sm transition-all min-w-[180px] flex items-center justify-center
-                border-rabuste-text/20 text-rabuste-text hover:bg-rabuste-text/5"
-            >
-              Current Exhibitions
-            </a>
-          </div>
+          <motion.p variants={itemVars} className="text-lg max-w-md leading-relaxed mb-8 text-rabuste-muted transition-colors duration-300">
+            {hasFeatured 
+              ? featuredItem.shortDescription || featuredItem.description?.substring(0, 100) + "..."
+              : "Experience the raw energy of pure coffee. Where intense flavors meet industrial art."
+            }
+          </motion.p>
+
+          <motion.div variants={itemVars} className="flex gap-4">
+             {hasFeatured ? (
+                <Link to={`/shop/${featuredItem.slug}`} className="px-8 py-4 bg-rabuste-text text-rabuste-bg hover:bg-rabuste-orange hover:text-white font-bold uppercase tracking-widest text-xs rounded-sm transition-all duration-300">
+                  Order Now - ₹{featuredItem.price}
+                </Link>
+             ) : (
+                <a href="#menu" className="px-8 py-4 bg-rabuste-text text-rabuste-bg hover:bg-rabuste-orange hover:text-white font-bold uppercase tracking-widest text-xs rounded-sm transition-all duration-300">
+                  View Menu
+                </a>
+             )}
+             
+             <a href="#gallery" className="px-8 py-4 border border-rabuste-text/20 text-rabuste-text hover:border-rabuste-gold hover:text-rabuste-gold font-bold uppercase tracking-widest text-xs rounded-sm transition-all duration-300">
+               Gallery
+             </a>
+          </motion.div>
         </motion.div>
       </div>
 
-      {/* Scroll Indicator */}
+      {/* 3D INTERACTIVE SECTION */}
+      <div className="absolute h-full inset-0 md:static md:w-1/2  z-10 cursor-move "> 
+         <Canvas camera={{ position: [0, 0, 12], fov: 35 }}>
+            
+            <OrbitControls 
+              enableZoom={false} 
+              enablePan={false} 
+              autoRotate={true}
+              autoRotateSpeed={1}
+              minPolarAngle={Math.PI / 4} 
+              maxPolarAngle={Math.PI / 1.5}
+            />
+
+            {/* Lighting */}
+            <ambientLight intensity={3.0} />
+            <spotLight position={[10, 10, 10]} angle={0.2} penumbra={1} intensity={15} color="#ffffff" />
+            <spotLight position={[-10, 10, -10]} intensity={20} color="#D4AF37" />
+            <pointLight position={[0, -10, 5]} intensity={5} color="#ffffff" />
+            <directionalLight position={[0, 10, 0]} intensity={5} color="#ffffff" />
+
+            <Environment preset="studio" />
+
+            <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
+               {hasFeatured ? (
+                 <ThreeDoubleSidedBox 
+                    frontSrc={featuredItem.image.url} 
+                    backSrc={featuredItem.image.url} 
+                 />
+               ) : (
+                 <ThreeCoffeeCup />
+               )}
+            </Float>
+            
+            <ContactShadows 
+              position={[0, -3, 0]} 
+              opacity={isDark ? 0.6 : 0.5} 
+              scale={10} 
+              blur={2.5} 
+              far={4.5} 
+              color={isDark ? "#D4AF37" : "#000000"} 
+            />
+         </Canvas>
+      </div>
+
       <motion.div 
-        style={{ opacity: indicatorOpacity }}
-        className="absolute bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1, y: [0, 10, 0] }}
+        transition={{ delay: 1, duration: 2, repeat: Infinity }}
+        className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-20 md:hidden"
       >
-        <span className="text-[10px] uppercase tracking-[0.3em] text-rabuste-muted">Scroll</span>
-        <div className="w-[1px] h-8 md:h-12 animate-pulse bg-gradient-to-b 
-          from-transparent via-rabuste-muted to-transparent" 
-        />
+        <span className="text-[10px] uppercase tracking-widest text-rabuste-muted">Scroll</span>
+        <div className="w-[1px] h-12 bg-gradient-to-b from-rabuste-muted/50 to-transparent"></div>
       </motion.div>
+
     </section>
   );
 };
