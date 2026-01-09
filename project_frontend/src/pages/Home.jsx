@@ -19,8 +19,6 @@ const Home = () => {
     <PageTransition>
       <main className="min-h-screen bg-rabuste-bg text-rabuste-text selection:bg-rabuste-orange selection:text-white">
         <Navbar />
-        <Hero />
-        
         <div className="relative z-10 bg-rabuste-bg">
           {/* Wrap sections in Reveal for scroll animation */}
           <section id="about">
