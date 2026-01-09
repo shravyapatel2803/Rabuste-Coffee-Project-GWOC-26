@@ -16,7 +16,7 @@ connectDB();
 
 const app = express();
 const allowedOrigins = [
-  "https://rabuste-coffee-project-gwoc-26-1.onrender.com", // user frontend
+  "https://rabuste-coffee-project-gwoc-26-39cy.vercel.app/", // user frontend
   "http://localhost:5174", // admin frontend
 ];
 
