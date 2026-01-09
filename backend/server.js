@@ -9,7 +9,7 @@ import artRoutes from "./routes/art.Routes.js";
 import workshopRoutes from "./routes/workshop.Routes.js";
 import orderRoutes from "./routes/order.Routes.js";
 import aiRoutes from "./routes/ai.routes.js";
-import franchiseRoutes from "./routes/franchise.routes.js";
+import franchiseRoutes from "./routes/franchise.Routes.js";
 
 dotenv.config();
 connectDB();
