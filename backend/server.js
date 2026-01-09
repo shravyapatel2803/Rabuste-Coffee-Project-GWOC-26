@@ -21,11 +21,28 @@ const allowedOrigins = [
 ];
 
 app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "http://localhost:5174",
-    "https://rabuste-coffee-project-gwoc-26-39cy.vercel.app"
-  ],
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+
+    // Define allowed origins
+    const allowedOrigins = [
+      "http://localhost:5173",
+      "http://localhost:5174",
+      "https://rabuste-coffee-project-gwoc-26.vercel.app", // Main production domain
+      "https://rabuste-coffee-project-gwoc-26-39cy.vercel.app"
+    ];
+
+    // Check if the origin is in the allowed list OR if it's a Vercel preview URL
+    // This Regex checks if the URL ends with ".vercel.app" and contains your project name
+    const isVercelPreview = origin.includes("rabuste-coffee-project") && origin.endsWith(".vercel.app");
+
+    if (allowedOrigins.includes(origin) || isVercelPreview) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   credentials: true
 }));
