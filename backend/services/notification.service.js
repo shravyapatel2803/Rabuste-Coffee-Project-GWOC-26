@@ -1,9 +1,9 @@
 import NotificationLog from "../models/notification.model.js";
 import { sendRealEmail } from "../utils/email.js";
 
-export const logNotification = async ({ type, referenceId, recipient, data }) => {
+export const logNotification = ({ type, referenceId, recipient = {}, data = {} }) => {
   try {
-    const { name, email } = recipient || {};
+    const { name = "User", email } = recipient;
     let emailMessage = "";
     let title = "";
 
@@ -14,7 +14,7 @@ export const logNotification = async ({ type, referenceId, recipient, data }) =>
 
         if (status === "Confirmed")
           emailMessage = `Hi ${name},\n\nGood news! Your order #${referenceId
-            .slice(-6)
+            ?.slice(-6)
             .toUpperCase()} has been CONFIRMED.`;
         else if (status === "Preparing")
           emailMessage = `Hi ${name},\n\nYour order is now being PREPARED by our chefs. 👨‍🍳`;
@@ -24,7 +24,7 @@ export const logNotification = async ({ type, referenceId, recipient, data }) =>
           emailMessage = `Hi ${name},\n\nThank you for visiting Rabuste Coffee! Your order is COMPLETED.`;
         else if (status === "Cancelled")
           emailMessage = `Hi ${name},\n\nYour order #${referenceId
-            .slice(-6)
+            ?.slice(-6)
             .toUpperCase()} has been CANCELLED.`;
         break;
       }
@@ -48,12 +48,12 @@ export const logNotification = async ({ type, referenceId, recipient, data }) =>
 
       case "admin_franchise_enquiry":
         title = `📢 New Franchise Enquiry: ${data.city}`;
-        emailMessage = `Hello Admin,\n\nYou have received a new Franchise Enquiry!\n\nName: ${data.name}\nCity: ${data.city}, ${data.state}\nBudget: ${data.investmentRange}\nPhone: ${data.phone}\nEmail: ${data.email}\n\nMessage:\n"${data.message}"`;
+        emailMessage = `Hello Admin,\n\nName: ${data.name}\nCity: ${data.city}, ${data.state}\nBudget: ${data.investmentRange}\nPhone: ${data.phone}\nEmail: ${data.email}\n\nMessage:\n"${data.message}"`;
         break;
 
       case "franchise_status_update":
         title = `Update on your Franchise Enquiry - Rabuste Coffee`;
-        emailMessage = `Hi ${name},\n\nYour franchise enquiry status has been updated to: ${data.status.toUpperCase()}.\n\nBest Regards,\nRabuste Team`;
+        emailMessage = `Hi ${name},\n\nYour franchise enquiry status has been updated to: ${data.status?.toUpperCase()}.\n\nBest Regards,\nRabuste Team`;
         break;
 
       case "admin_password_reset":
@@ -66,34 +66,40 @@ export const logNotification = async ({ type, referenceId, recipient, data }) =>
         emailMessage = "You have a new notification from Rabuste Coffee.";
     }
 
+    if (!email) return;
 
-    if (email) {
-      const emailLog = {
-        type,
-        referenceId,
-        channel: "email",
-        recipient: email,
-        title,
-        message: emailMessage,
-        status: "queued" 
-      };
+    const emailLog = {
+      type,
+      referenceId,
+      channel: "email",
+      recipient: email,
+      title,
+      message: emailMessage,
+      status: "queued"
+    };
 
-      // SEND EMAIL IN BACKGROUND (NO await)
-      sendRealEmail({
-        to: email,
-        subject: title,
-        text: emailMessage
+    // Save log immediately (email queue entry)
+    NotificationLog.create(emailLog).catch(() => {});
+
+    // Send email in background (NO await)
+    sendRealEmail({
+      to: email,
+      subject: title,
+      text: emailMessage
+    })
+      .then(() => {
+        NotificationLog.updateOne(
+          { referenceId, recipient: email, channel: "email" },
+          { $set: { status: "sent" } }
+        ).catch(() => {});
       })
-        .then(() => {
-          emailLog.status = "sent";
-          NotificationLog.create(emailLog);
-        })
-        .catch((err) => {
-          emailLog.status = "failed";
-          NotificationLog.create(emailLog);
-          console.error("Email failed:", err.message);
-        });
-    }
+      .catch((err) => {
+        console.error("Email failed:", err.message);
+        NotificationLog.updateOne(
+          { referenceId, recipient: email, channel: "email" },
+          { $set: { status: "failed" } }
+        ).catch(() => {});
+      });
 
   } catch (error) {
     console.error("Notification Service Error:", error);
