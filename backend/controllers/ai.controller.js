@@ -56,21 +56,20 @@ export const chatWithAI = async (req, res) => {
     const { query } = req.body;
     if (!query) return res.status(400).json({ message: "Query is required" });
 
+    // Service ab hamesha ek object return karega (Answer ya Fallback)
     const response = await AIService.getChatbotResponse(query);
     
-    if (!response) {
-      return res.status(200).json({ 
-        success: true,
-        data: {
-          answer: "I'm still learning! Why not ask our barista at the counter? Or try asking about 'Robusta' or 'Menu'."
-        } 
-      });
-    }
+    res.status(200).json({ 
+        success: true, 
+        data: response 
+    });
 
-    res.status(200).json({ success: true, data: response });
   } catch (error) {
     console.error("AI Chat Error:", error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ 
+        success: false, 
+        message: "AI brain is sleeping. Try again later." 
+    });
   }
 };
 

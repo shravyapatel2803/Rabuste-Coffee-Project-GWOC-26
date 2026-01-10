@@ -156,19 +156,122 @@ export const getArtPairing = async (coffeeId) => {
     if (coffee.pairingExplanation && coffee.pairingExplanation.get("general")) explanation = coffee.pairingExplanation.get("general");
     return { coffeeName: coffee.name, pairingExplanation: explanation, arts: pairedArts };
 };
-export const getChatbotResponse = async (userQuery) => {
-    const response = await AIResponse.findOne({
-        $or: [ { key: userQuery.toLowerCase().replace(/ /g, "_") }, { question: { $regex: userQuery, $options: "i" } } ],
-        isActive: true
-    });
-    return response || null;
-};
+
 export const fetchAIConfig = async () => {
     let config = await AIConfig.findOne({ feature: "coffee-discovery" });
     if (!config) config = await AIConfig.create({ feature: "coffee-discovery", config: { moodWeight: 30, timeWeight: 15, strengthWeight: 15, flavorWeight: 20, bitternessWeight: 10, caffeineWeight: 10 }, isEnabled: true });
     return config;
 };
-export const modifyAIConfig = async (data) => AIConfig.findOneAndUpdate({ feature: "coffee-discovery" }, { config: data.config, isEnabled: data.isEnabled }, { new: true, upsert: true });
+
+import AIResponse from "../models/aiResponse.model.js";
+
+/**
+ * Normalize text: lowercase, remove symbols, trim spaces
+ */
+const normalizeText = (text = "") =>
+  text
+    .toLowerCase()
+    .replace(/[^\w\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+/**
+ * Optional typo / synonym map (safe, rule-based)
+ */
+const typoMap = {
+  rabustato: "rabusta",
+  rabustaa: "rabusta",
+  rabasto: "rabusta",
+  rabusto: "rabusta",
+  robusto: "robusta",
+};
+
+/**
+ * Normalize word with typo map
+ */
+const normalizeWord = (word) => typoMap[word] || word;
+
+/**
+ * MAIN CHATBOT FUNCTION
+ */
+export const getChatbotResponse = async (userQuery = "") => {
+  try {
+    if (!userQuery || typeof userQuery !== "string") return null;
+
+    const cleanQuery = normalizeText(userQuery);
+
+    if (!cleanQuery) return null;
+
+    const queryWords = cleanQuery
+      .split(" ")
+      .map(normalizeWord)
+      .filter(Boolean);
+
+    const directKey = cleanQuery.replace(/\s+/g, "_");
+
+    const directMatch = await AIResponse.findOne({
+      key: directKey,
+      isActive: true,
+    }).lean();
+
+    if (directMatch) return directMatch;
+
+    const responses = await AIResponse.find({ isActive: true }).lean();
+
+    let bestMatch = null;
+    let bestScore = 0;
+
+    for (const doc of responses) {
+      let score = 0;
+
+      if (doc.question) {
+        const q = normalizeText(doc.question);
+        if (q.includes(cleanQuery)) score += 10;
+      }
+
+      if (Array.isArray(doc.tags)) {
+        doc.tags.forEach((tag) => {
+          const t = normalizeText(tag);
+
+          if (queryWords.includes(t)) score += 6;
+
+          queryWords.forEach((w) => {
+            if (t.includes(w) || w.includes(t)) score += 2;
+          });
+        });
+      }
+
+      if (
+        doc.category &&
+        queryWords.includes(normalizeText(doc.category))
+      ) {
+        score += 3;
+      }
+
+      if (score > 0 && doc.answer) {
+        score += Math.max(0, 5 - doc.answer.length / 100);
+      }
+
+      if (score > bestScore) {
+        bestScore = score;
+        bestMatch = doc;
+      }
+    }
+
+    if (bestMatch && bestScore >= 4) {
+      return bestMatch;
+    }
+
+    return null;
+
+  } catch (error) {
+    console.error("AI Chatbot Error:", error);
+    return null;
+  }
+};
+
+
+// Ensure fetchAllQAs uses proper sorting
 export const fetchAllQAs = async () => AIResponse.find().sort({ createdAt: -1 });
 export const createNewQA = async (data) => AIResponse.create(data);
 export const modifyQA = async (id, data) => AIResponse.findByIdAndUpdate(id, data, { new: true });

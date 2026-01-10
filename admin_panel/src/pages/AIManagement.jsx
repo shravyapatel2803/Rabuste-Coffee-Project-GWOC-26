@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Save, Plus, Trash2, Edit2, Bot, Sliders, ToggleLeft, ToggleRight, Loader2, AlertTriangle } from "lucide-react";
-import { 
+import { Save, Plus, Trash2, Edit2, Bot, Sliders, ToggleLeft, ToggleRight, Loader2, AlertTriangle, Tag } from "lucide-react";import { 
   getAIConfig, updateAIConfig, getAllQAs, createQA, updateQA, deleteQA 
 } from "../api/Ai"; 
 
@@ -201,7 +200,9 @@ const TrainingPanel = () => {
   const [qas, setQAs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
-  const [formData, setFormData] = useState({ key: "", question: "", answer: "", category: "general" });
+  
+  // Added 'tags' to initial state
+  const [formData, setFormData] = useState({ key: "", question: "", answer: "", category: "general", tags: "" });
   const [editingId, setEditingId] = useState(null);
 
   useEffect(() => {
@@ -223,13 +224,20 @@ const TrainingPanel = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Convert comma-separated tags string to Array for backend
+    const payload = {
+        ...formData,
+        tags: formData.tags.split(",").map(t => t.trim()).filter(Boolean) // "wifi, pass" -> ["wifi", "pass"]
+    };
+
     try {
-      if (editingId) await updateQA(editingId, formData);
-      else await createQA(formData);
+      if (editingId) await updateQA(editingId, payload);
+      else await createQA(payload);
       
       setFormOpen(false);
       setEditingId(null);
-      setFormData({ key: "", question: "", answer: "", category: "general" });
+      setFormData({ key: "", question: "", answer: "", category: "general", tags: "" });
       fetchQAs(); 
     } catch  {
       alert("Operation failed. Key must be unique.");
@@ -237,7 +245,15 @@ const TrainingPanel = () => {
   };
 
   const handleEdit = (qa) => {
-    setFormData({ key: qa.key, question: qa.question, answer: qa.answer, category: qa.category });
+    // Convert Array back to string for Input field
+    const tagsString = Array.isArray(qa.tags) ? qa.tags.join(", ") : "";
+    setFormData({ 
+        key: qa.key, 
+        question: qa.question, 
+        answer: qa.answer, 
+        category: qa.category,
+        tags: tagsString 
+    });
     setEditingId(qa._id);
     setFormOpen(true);
   };
@@ -254,10 +270,10 @@ const TrainingPanel = () => {
       <div className="p-6 border-b border-rabuste-text/5 flex justify-between items-center bg-rabuste-bg/50">
         <div>
           <h3 className="font-bold text-rabuste-text">Chatbot Knowledge Base</h3>
-          <p className="text-xs text-rabuste-muted">Train the AI to answer common questions.</p>
+          <p className="text-xs text-rabuste-muted">Train the AI with Questions & Keywords (Tags).</p>
         </div>
         <button 
-          onClick={() => { setFormOpen(true); setEditingId(null); setFormData({ key: "", question: "", answer: "", category: "general" }); }}
+          onClick={() => { setFormOpen(true); setEditingId(null); setFormData({ key: "", question: "", answer: "", category: "general", tags: "" }); }}
           className="bg-rabuste-orange hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2 transition-all shadow-sm"
         >
           <Plus size={16} /> Add Q&A
@@ -269,8 +285,8 @@ const TrainingPanel = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="md:col-span-1">
-                <label className="text-xs font-bold text-rabuste-muted uppercase mb-1 block">Key (ID)</label>
-                <input required type="text" placeholder="wifi_pass" value={formData.key} onChange={e => setFormData({...formData, key: e.target.value.replace(/\s+/g, '_').toLowerCase()})} 
+                <label className="text-xs font-bold text-rabuste-muted uppercase mb-1 block">Key (Unique ID)</label>
+                <input required type="text" placeholder="wifi_access" value={formData.key} onChange={e => setFormData({...formData, key: e.target.value.replace(/\s+/g, '_').toLowerCase()})} 
                   className="w-full p-2 border border-rabuste-text/10 rounded-lg text-sm focus:ring-2 focus:ring-rabuste-orange bg-rabuste-bg text-rabuste-text outline-none" 
                 />
               </div>
@@ -286,11 +302,26 @@ const TrainingPanel = () => {
                 </select>
               </div>
               <div className="md:col-span-2">
-                <label className="text-xs font-bold text-rabuste-muted uppercase mb-1 block">User Question</label>
+                <label className="text-xs font-bold text-rabuste-muted uppercase mb-1 block">Expected User Question</label>
                 <input required type="text" placeholder="e.g. What is the wifi password?" value={formData.question} onChange={e => setFormData({...formData, question: e.target.value})} 
                   className="w-full p-2 border border-rabuste-text/10 rounded-lg text-sm focus:ring-2 focus:ring-rabuste-orange bg-rabuste-bg text-rabuste-text outline-none"
                 />
               </div>
+            </div>
+
+            {/* NEW TAGS INPUT */}
+            <div>
+               <label className="text-xs font-bold text-rabuste-muted uppercase mb-1 flex items-center gap-1">
+                 <Tag size={12}/> Smart Tags (Keywords)
+               </label>
+               <input 
+                  type="text" 
+                  placeholder="e.g. wifi, internet, connect, password (comma separated)" 
+                  value={formData.tags} 
+                  onChange={e => setFormData({...formData, tags: e.target.value})} 
+                  className="w-full p-2 border border-rabuste-text/10 rounded-lg text-sm focus:ring-2 focus:ring-rabuste-orange bg-rabuste-bg text-rabuste-text outline-none placeholder:text-gray-400"
+               />
+               <p className="text-[10px] text-rabuste-muted mt-1">Chatbot uses these keywords to find this answer even if the question doesn't match exactly.</p>
             </div>
             
             <div>
@@ -310,6 +341,7 @@ const TrainingPanel = () => {
         </div>
       )}
 
+      {/* TABLE VIEW */}
       {loading ? (
         <div className="p-10 flex justify-center text-rabuste-muted"><Loader2 className="animate-spin mr-2" /> Loading Data...</div>
       ) : (
@@ -317,8 +349,8 @@ const TrainingPanel = () => {
           <table className="w-full text-left border-collapse">
             <thead className="bg-rabuste-bg/50 text-xs text-rabuste-muted uppercase tracking-wider border-b border-rabuste-text/5 sticky top-0">
               <tr>
-                <th className="p-4 font-bold">Question / Key</th>
-                <th className="p-4 font-bold">Answer</th>
+                <th className="p-4 font-bold">Concept (Key / Tags)</th>
+                <th className="p-4 font-bold">Q&A</th>
                 <th className="p-4 font-bold text-right">Actions</th>
               </tr>
             </thead>
@@ -326,12 +358,16 @@ const TrainingPanel = () => {
               {qas.map(qa => (
                 <tr key={qa._id} className="hover:bg-rabuste-bg/50 transition-colors group">
                   <td className="p-4 align-top w-1/3">
-                    <div className="font-bold text-rabuste-text">{qa.question}</div>
-                    <span className="text-[10px] bg-rabuste-bg px-1.5 py-0.5 rounded text-rabuste-muted font-mono mt-1 inline-block">{qa.key}</span>
-                    <span className="ml-2 text-[10px] bg-blue-500/10 text-blue-500 px-1.5 py-0.5 rounded border border-blue-500/20 uppercase font-bold">{qa.category}</span>
+                    <div className="font-mono text-xs text-rabuste-muted bg-rabuste-bg px-1.5 py-0.5 rounded inline-block mb-1">{qa.key}</div>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                        {qa.tags && qa.tags.map((t, i) => (
+                            <span key={i} className="text-[10px] bg-orange-500/10 text-orange-600 px-1.5 py-0.5 rounded border border-orange-500/20">{t}</span>
+                        ))}
+                    </div>
                   </td>
-                  <td className="p-4 text-rabuste-muted align-top">
-                    {qa.answer}
+                  <td className="p-4 align-top">
+                    <div className="font-bold text-rabuste-text mb-1">Q: {qa.question}</div>
+                    <div className="text-rabuste-muted">A: {qa.answer}</div>
                   </td>
                   <td className="p-4 text-right align-top w-24">
                     <div className="flex justify-end gap-2">

@@ -2,45 +2,53 @@ import mongoose from "mongoose";
 
 const aiResponseSchema = new mongoose.Schema(
   {
-    // unique key for each QA pair
+    // internal identifier
     key: {
       type: String,
       required: true,
-      unique: true,
-      trim: true
-      // example: "what_is_robusta"
+      trim: true,
+      unique: true
     },
 
-    // user-facing question
+    // sample user question
     question: {
       type: String,
       required: true,
       trim: true
     },
 
-    // static ai answer
+    // actual bot reply
     answer: {
       type: String,
       required: true,
       trim: true
     },
 
-    // category of the response
+    // classification
     category: {
       type: String,
-      required: true
-      // coffee | art | workshop | general
+      enum: ["general", "coffee", "art", "support"],
+      default: "general"
     },
 
+    // example: ["rabusta", "rabuste", "coffee"]
+    tags: {
+      type: [String],
+      default: [],
+    },
+
+    // enable / disable response
     isActive: {
       type: Boolean,
       default: true
     }
   },
-  { timestamps: true }
+  {
+    timestamps: true
+  }
 );
 
-aiResponseSchema.index({ category: 1 });
-aiResponseSchema.index({ isActive: 1 });
 
-export default mongoose.model("AIResponse", aiResponseSchema);
+const AIResponse = mongoose.model("AIResponse", aiResponseSchema);
+
+export default AIResponse;
