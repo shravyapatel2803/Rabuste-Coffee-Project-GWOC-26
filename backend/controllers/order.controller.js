@@ -115,14 +115,11 @@ export const getAllOrders = async (req, res) => {
     let query = {};
 
     if (search) {
-      query.$or = [
-        { name: { $regex: search, $options: "i" } },
-        { _id: { $regex: search, $options: "i" } }
-      ];
+      query.name = { $regex: search, $options: "i" };
     }
 
     if (status && status !== "All") {
-      query.orderStatus = status;
+      query.orderStatus = status.toLowerCase();
     }
 
     if (paymentStatus && paymentStatus !== "All") {
@@ -164,6 +161,7 @@ export const getAllOrders = async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 };
+
 
 /* ===========================
    GET SINGLE ORDER (ADMIN)
