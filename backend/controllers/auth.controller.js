@@ -136,7 +136,7 @@ export const forgotPassword = async (req, res) => {
     admin.passwordHash = passwordHash;
     await admin.save();
 
-    await logNotification({
+    logNotification({
       type: "admin_password_reset",
       referenceId: admin._id,
       recipient: { name: admin.name, email: admin.email },

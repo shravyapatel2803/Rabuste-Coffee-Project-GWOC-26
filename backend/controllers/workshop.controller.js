@@ -2,7 +2,7 @@ import Workshop from "../models/Workshop.model.js";
 import WorkshopRegistration from "../models/WorkshopRegistration.model.js";
 import { logNotification } from "../services/notification.service.js"; 
 
-// user side 
+// ================= USER SIDE =================
 
 export const getAllWorkshops = async (req, res) => {
   try {
@@ -43,7 +43,6 @@ export const registerForWorkshop = async (req, res) => {
     const { workshopId, name, email, phone, tickets } = req.body;
 
     const workshop = await Workshop.findById(workshopId);
-
     if (!workshop) {
       return res.status(404).json({ message: "Workshop not found" });
     }
@@ -72,7 +71,8 @@ export const registerForWorkshop = async (req, res) => {
     workshop.registeredCount += requestedTickets;
     await workshop.save();
 
-    await logNotification({
+    /* NOTIFICATION (NON-BLOCKING) */
+    logNotification({
       type: "workshop_registration",
       referenceId: savedRegistration._id.toString(),
       recipient: { name, email, phone },
@@ -96,8 +96,7 @@ export const registerForWorkshop = async (req, res) => {
   }
 };
 
-
-// admin side
+// ================= ADMIN SIDE =================
 
 export const getAdminWorkshops = async (req, res) => {
   try {
@@ -161,13 +160,14 @@ export const updateWorkshop = async (req, res) => {
       };
     }
 
-    if (updateData.price) {
+    if (updateData.price !== undefined) {
       updateData.isFree = updateData.price == 0;
     }
 
     const updatedWorkshop = await Workshop.findByIdAndUpdate(id, updateData, { new: true });
-    
-    if (!updatedWorkshop) return res.status(404).json({ message: "Workshop not found" });
+    if (!updatedWorkshop) {
+      return res.status(404).json({ message: "Workshop not found" });
+    }
 
     res.status(200).json(updatedWorkshop);
 
@@ -181,7 +181,6 @@ export const deleteWorkshop = async (req, res) => {
     const { id } = req.params;
 
     const deletedWorkshop = await Workshop.findByIdAndDelete(id);
-
     if (!deletedWorkshop) {
       return res.status(404).json({ message: "Workshop not found" });
     }
@@ -202,9 +201,10 @@ export const getWorkshopRegistrations = async (req, res) => {
     const { id } = req.params;
 
     const registrations = await WorkshopRegistration.find({ workshopId: id })
-      .sort({ createdAt: -1 }); 
+      .sort({ createdAt: -1 });
 
     res.status(200).json(registrations);
+
   } catch (error) {
     console.error("Error fetching registrations:", error);
     res.status(500).json({ message: "Failed to fetch registrations", error: error.message });
