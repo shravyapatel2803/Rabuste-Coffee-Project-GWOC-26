@@ -163,7 +163,7 @@ export const fetchAIConfig = async () => {
     return config;
 };
 
-import AIResponse from "../models/aiResponse.model.js";
+// import AIResponse from "../models/aiResponse.model.js";
 
 /**
  * Normalize text: lowercase, remove symbols, trim spaces
