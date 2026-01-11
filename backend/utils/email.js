@@ -1,23 +1,29 @@
-import "dotenv/config";   
-import { Resend } from "resend";
+import "dotenv/config";
+import nodemailer from "nodemailer";
 
-if (!process.env.RESEND_API_KEY) {
-  console.error("RESEND_API_KEY is missing");
-}
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+const transporter = nodemailer.createTransport({
+  host: process.env.BREVO_SMTP_HOST,
+  port: process.env.BREVO_SMTP_PORT,
+  secure: false,
+  auth: {
+    user: process.env.BREVO_SMTP_USER,  
+    pass: process.env.BREVO_SMTP_PASS   
+  }
+});
 
 export const sendRealEmail = async ({ to, subject, text }) => {
   try {
-    await resend.emails.send({
-      from: "Rabuste Coffee <onboarding@resend.dev>",
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_FROM,
       to,
       subject,
       text
     });
+
     return true;
+
   } catch (error) {
-    console.error("Resend Email Error:", error.message);
     return false;
   }
 };
